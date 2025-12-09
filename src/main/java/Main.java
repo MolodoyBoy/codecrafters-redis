@@ -24,16 +24,34 @@ public class Main {
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(port));
 
-            Socket clientSocket = serverSocket.accept();
+            while (!executorService.isShutdown()) {
+                Socket clientSocket = serverSocket.accept();
 
-            executorService.submit(() -> handleClient(clientSocket));
+                executorService.submit(() -> {
+                    try {
+                        handleClient(clientSocket);
+                    } catch (IOException e) {
+                        System.out.println("IOException in client handler: " + e.getMessage());
+                    } finally {
+                        try {
+                            if (!clientSocket.isClosed()) {
+                                clientSocket.close();
+                            }
+                        } catch (IOException e) {
+                            System.out.println("IOException while closing client socket: " + e.getMessage());
+                        }
+                    }
+                });
+            }
 
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
     }
 
-    private static void handleClient(Socket clientSocket) {
+    private static void handleClient(Socket clientSocket) throws IOException {
+        System.out.println("Client handled: " + clientSocket.getRemoteSocketAddress());
+
         try (BufferedReader bufferedReader = getBufferedReader(clientSocket);
              BufferedWriter bufferedWriter = getBufferedWriter(clientSocket)) {
 
@@ -44,6 +62,8 @@ public class Main {
                         continue;
                     }
 
+                    System.out.println("Line received: " + readLine);
+
                     if ("PING".equalsIgnoreCase(readLine)) {
                         bufferedWriter.write(RESPONSE_MESSAGE);
                         bufferedWriter.flush();
@@ -52,8 +72,6 @@ public class Main {
                     System.out.println("IOException while handling client: " + e.getMessage());
                 }
             }
-        } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
         }
     }
 
