@@ -18,29 +18,33 @@ public class Main {
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(port));
 
-            Socket clientSocket = serverSocket.accept();
+            try (Socket clientSocket = serverSocket.accept();
+                 BufferedReader bufferedReader = getBufferedReader(clientSocket);
+                 BufferedWriter bufferedWriter = getBufferedWriter(clientSocket)) {
 
-            try (InputStream inputStream = clientSocket.getInputStream();
-                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+                while (true) {
+                    try {
+                        String readLine = bufferedReader.readLine();
 
-                bufferedReader.readLine();
+                        System.out.println(readLine);
 
-                writeResponse(clientSocket, responseMessage);
+                        bufferedWriter.write(responseMessage);
+                        bufferedWriter.flush();
+                    } catch (IOException e) {
+                        System.out.println("IOException while handling client: " + e.getMessage());
+                    }
+                }
             }
-
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
     }
 
-    private static void writeResponse(Socket clientSocket, String responseMessage) throws IOException {
-        try (OutputStream outputStream = clientSocket.getOutputStream();
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter)) {
+    private static BufferedReader getBufferedReader(Socket clientSocket) throws IOException {
+        return new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    }
 
-            bufferedWriter.write(responseMessage);
-            bufferedWriter.flush();
-        }
+    private static BufferedWriter getBufferedWriter(Socket clientSocket) throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
     }
 }
