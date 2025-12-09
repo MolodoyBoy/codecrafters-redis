@@ -26,8 +26,6 @@ public class Main {
                     try {
                         String readLine = bufferedReader.readLine();
 
-                        System.out.println(readLine);
-
                         bufferedWriter.write(responseMessage);
                         bufferedWriter.flush();
                     } catch (IOException e) {
