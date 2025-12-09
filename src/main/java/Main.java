@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,9 +24,9 @@ public class Main {
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(port));
 
-            try (Socket clientSocket = serverSocket.accept()) {
-                executorService.submit(() -> handleClient(clientSocket));
-            }
+            Socket clientSocket = serverSocket.accept();
+
+            executorService.submit(() -> handleClient(clientSocket));
 
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
