@@ -25,6 +25,9 @@ public class Main {
                 while (true) {
                     try {
                         String readLine = bufferedReader.readLine();
+                        if (readLine.isBlank()) {
+                            continue;
+                        }
 
                         bufferedWriter.write(responseMessage);
                         bufferedWriter.flush();
