@@ -29,8 +29,10 @@ public class Main {
                             continue;
                         }
 
-                        bufferedWriter.write(responseMessage);
-                        bufferedWriter.flush();
+                        if (readLine.equalsIgnoreCase("PING")) {
+                            bufferedWriter.write(responseMessage);
+                            bufferedWriter.flush();
+                        }
                     } catch (IOException e) {
                         System.out.println("IOException while handling client: " + e.getMessage());
                     }
