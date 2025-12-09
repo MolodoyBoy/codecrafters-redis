@@ -24,11 +24,9 @@ public class Main {
                  InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
-                String readLine = bufferedReader.readLine();
+                bufferedReader.readLine();
 
-                if (Objects.equals(readLine, pingCommand)) {
-                    writeResponse(clientSocket, responseMessage);
-                }
+                writeResponse(clientSocket, responseMessage);
             }
 
         } catch (IOException e) {
