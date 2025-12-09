@@ -12,7 +12,7 @@ public class Main {
         int port = 6379;
 
         String pingCommand = "PING";
-        String responseMessage = "+PONG\\r\\n";
+        String responseMessage = "+PONG\r\n";
 
         try (ServerSocket serverSocket = new ServerSocket()) {
             serverSocket.setReuseAddress(true);
