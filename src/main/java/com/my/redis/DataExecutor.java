@@ -73,8 +73,7 @@ public class DataExecutor {
                     throw new IllegalArgumentException("ECHO command requires one argument!");
                 } else {
                     if (args[0] instanceof StringData stringData) {
-                        String value = stringData.getValue();
-                        yield value.length() + CRLF + value + CRLF;
+                        yield stringData.decorate();
                     } else {
                         throw new IllegalArgumentException("ECHO argument must be a string!");
                     }

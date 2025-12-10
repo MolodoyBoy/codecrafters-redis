@@ -32,6 +32,7 @@ public class SimpleStringData implements StringData {
             return null;
         }
 
-        return getType().getValue() + value + CRLF;
+        String parsedType = Character.toString(getType().getValue());
+        return parsedType + value + CRLF;
     }
 }

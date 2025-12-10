@@ -32,6 +32,7 @@ public class BulkStringData implements StringData {
             return null;
         }
 
-        return getType().getValue() + value.length() + CRLF + value + CRLF;
+        String parsedType = Character.toString(getType().getValue());
+        return parsedType + value.length() + CRLF + value + CRLF;
     }
 }
