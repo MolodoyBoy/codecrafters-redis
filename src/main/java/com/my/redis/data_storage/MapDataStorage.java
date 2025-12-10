@@ -1,17 +1,17 @@
 package com.my.redis.data_storage;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MapDataStorage {
 
-    private final Map<String, String> cache = new HashMap<>();
+    private final Map<String, String> cache = new ConcurrentHashMap<>();
 
-    public synchronized String get(String key) {
+    public String get(String key) {
         return cache.get(key);
     }
 
-    public synchronized void put(String key, String value) {
+    public void put(String key, String value) {
         cache.put(key, value);
     }
 }
