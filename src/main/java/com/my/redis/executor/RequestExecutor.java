@@ -34,6 +34,7 @@ public class RequestExecutor {
             case NULL -> null;
             case ARRAY -> getArrayCommandArgs(data);
             case BULK_STRING, SIMPLE_STRING -> getStringCommandArgs(data);
+            case INTEGER -> throw new IllegalArgumentException("Invalid command type: INTEGER!");
         };
 
         if (commandArgs == null) {

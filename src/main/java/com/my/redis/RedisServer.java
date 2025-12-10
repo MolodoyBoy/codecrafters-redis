@@ -69,11 +69,8 @@ public class RedisServer {
 
                     out.write(resultMessage);
                     out.flush();
-                } catch (IOException e) {
-                    System.err.println("IOException while handling client: " + e.getMessage());
-                    break;
-                } catch (IllegalArgumentException e) {
-                    System.err.println("Invalid request: " + e.getMessage());
+                } catch (IOException | IllegalArgumentException  e) {
+                    System.err.println("Exception while handling client: " + e.getMessage());
                     e.printStackTrace();
                     break;
                 } catch (EndOfStreamException e) {

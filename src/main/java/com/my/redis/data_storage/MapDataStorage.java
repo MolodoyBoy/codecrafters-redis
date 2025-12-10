@@ -5,13 +5,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MapDataStorage {
 
-    private final Map<String, String> cache = new ConcurrentHashMap<>();
+    private final Map<String, ValueData> cache = new ConcurrentHashMap<>();
 
-    public String get(String key) {
+    public ValueData get(String key) {
         return cache.get(key);
     }
 
-    public void put(String key, String value) {
+    public void put(String key, ValueData value) {
         cache.put(key, value);
+    }
+
+    public void remove(String key) {
+        cache.remove(key);
     }
 }

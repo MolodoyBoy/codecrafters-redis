@@ -10,6 +10,7 @@ public enum DataType {
 
     NULL('_'),
     ARRAY('*'),
+    INTEGER(':'),
     BULK_STRING('$'),
     SIMPLE_STRING('+');
 

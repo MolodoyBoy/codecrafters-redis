@@ -5,8 +5,11 @@ import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 import com.my.redis.data.StringData;
 import com.my.redis.data_storage.MapDataStorage;
+import com.my.redis.data_storage.ValueData;
 
 import static com.my.redis.Command.GET;
+import static java.time.LocalDateTime.now;
+import static java.time.ZoneOffset.UTC;
 
 public class GetCommandExecutor implements CommandExecutor {
 
@@ -30,9 +33,25 @@ public class GetCommandExecutor implements CommandExecutor {
         }
 
         if (args[0] instanceof StringData key) {
-            String value = cache.get(key.getValue());
+            ValueData valueData = cache.get(key.getValue());
 
-            return new BulkStringData(value).decorate();
+            if (valueData == null) {
+                return new BulkStringData(null).decorate();
+            }
+
+            Long expireAtMillis = valueData.expireAtMillis();
+            if (expireAtMillis != null) {
+                long nowMillis = now().toInstant(UTC).toEpochMilli();
+
+                if (nowMillis >= expireAtMillis) {
+                    cache.remove(key.getValue());
+                    return new BulkStringData(null).decorate();
+                }
+
+                return new BulkStringData(valueData.value()).decorate();
+            }
+
+            return new BulkStringData(valueData.value()).decorate();
         }
 
         throw new IllegalArgumentException("SET arguments must be strings!");

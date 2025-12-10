@@ -1,27 +1,35 @@
 package com.my.redis;
 
 import java.util.Map;
+import java.util.Set;
 
+import static com.my.redis.Option.*;
 import static java.util.Arrays.stream;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 public enum Command {
 
-    PING, ECHO, SET, GET;
+    PING(), ECHO(), SET(PX), GET();
 
     private final String command;
+    private final Set<Option> options;
 
-    Command() {
+    Command(Option... options) {
         this.command = this.name();
+        this.options = Set.of(options);
     }
 
-    public String getCommand() {
+    public String command() {
         return command;
     }
 
+    public boolean supportOption(Option option) {
+        return options.contains(option);
+    }
+
     private static final Map<String, Command> COMMAND_MAP = stream(Command.values())
-            .collect(toMap(Command::getCommand, identity()));
+            .collect(toMap(Command::command, identity()));
 
     public static Command parseCommand(String commandStr) {
         return COMMAND_MAP.get(commandStr.toUpperCase());

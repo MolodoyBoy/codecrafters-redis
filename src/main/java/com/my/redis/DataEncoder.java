@@ -57,6 +57,7 @@ public class DataEncoder {
         return switch (dataType) {
             case NULL -> new NullData();
             case ARRAY -> encodeArray();
+            case INTEGER -> encodeInteger();
             case BULK_STRING -> encodeBulkString();
             case SIMPLE_STRING -> encodeSimpleString();
         };
@@ -124,6 +125,23 @@ public class DataEncoder {
         validateCRLF(crlfBytes);
 
         return new SimpleStringData(sb.toString());
+    }
+
+    private Data encodeInteger() throws IOException {
+        int sign = in.read();
+
+        int signValue;
+        if (sign == MINUS) {
+            signValue = -1;
+        } else if (sign == PLUS) {
+            signValue = 1;
+        } else {
+            throw new IllegalArgumentException("Invalid integer format!");
+        }
+
+        int integerValue = signValue * encodeLength();
+
+        return new IntegerData(integerValue);
     }
 
     private int encodeLength() throws IOException {
