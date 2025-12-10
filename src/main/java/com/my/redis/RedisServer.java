@@ -1,6 +1,7 @@
 package com.my.redis;
 
 import com.my.redis.data.Data;
+import com.my.redis.executor.RequestExecutor;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -13,12 +14,12 @@ public class RedisServer {
 
     private final int port;
     private final int workerThreads;
-    private final DataExecutor dataExecutor;
+    private final RequestExecutor requestExecutor;
 
     public RedisServer(int port, int workerThreads) {
         this.port = port;
         this.workerThreads = workerThreads;
-        this.dataExecutor = new DataExecutor();
+        this.requestExecutor = new RequestExecutor();
     }
 
     public void start() {
@@ -64,7 +65,7 @@ public class RedisServer {
                     DataEncoder dataEncoder = new DataEncoder(in);
 
                     Data data = dataEncoder.encode();
-                    String resultMessage = dataExecutor.execute(data);
+                    String resultMessage = requestExecutor.execute(data);
 
                     out.write(resultMessage);
                     out.flush();

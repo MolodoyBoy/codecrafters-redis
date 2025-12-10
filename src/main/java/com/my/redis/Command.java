@@ -8,7 +8,7 @@ import static java.util.stream.Collectors.toMap;
 
 public enum Command {
 
-    PING, ECHO;
+    PING, ECHO, SET, GET;
 
     private final String command;
 

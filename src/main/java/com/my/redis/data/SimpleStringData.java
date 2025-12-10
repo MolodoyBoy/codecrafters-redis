@@ -12,11 +12,6 @@ public class SimpleStringData implements StringData {
     }
 
     @Override
-    public boolean isNull() {
-        return value == null;
-    }
-
-    @Override
     public DataType getType() {
         return SIMPLE_STRING;
     }

@@ -31,11 +31,6 @@ public class ArrayData implements Data {
     }
 
     @Override
-    public boolean isNull() {
-        return data == null;
-    }
-
-    @Override
     public DataType getType() {
         return ARRAY;
     }

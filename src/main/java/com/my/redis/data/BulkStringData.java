@@ -12,11 +12,6 @@ public class BulkStringData implements StringData {
     }
 
     @Override
-    public boolean isNull() {
-        return value == null;
-    }
-
-    @Override
     public DataType getType() {
         return BULK_STRING;
     }
@@ -28,11 +23,12 @@ public class BulkStringData implements StringData {
 
     @Override
     public String decorate() {
+        String parsedType = Character.toString(getType().getValue());
+
         if (value == null) {
-            return null;
+            return parsedType + -1 + CRLF;
         }
 
-        String parsedType = Character.toString(getType().getValue());
         return parsedType + value.length() + CRLF + value + CRLF;
     }
 }
