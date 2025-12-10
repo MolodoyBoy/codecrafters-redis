@@ -6,7 +6,7 @@ public class Main {
         System.out.println("Logs from your program will appear here!");
 
         int port = 6379;
-        int workerThreads = 4;
+        int workerThreads = 10;
 
         RedisServer redisServer = new RedisServer(port, workerThreads);
         redisServer.start();
