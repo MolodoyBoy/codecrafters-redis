@@ -20,4 +20,25 @@ public class ListDataStorage {
 
         return list.size();
     }
+
+    public synchronized List<String> get(String listKey, int start, int stop) {
+        List<String> list = cache.get(listKey);
+        if (list == null) {
+            return List.of();
+        }
+
+        if (start >= list.size()) {
+            return List.of();
+        }
+
+        if (start >= stop) {
+            return List.of();
+        }
+
+        if (stop >= list.size()) {
+            stop = list.size() - 1;
+        }
+
+        return list.subList(start, stop + 1);
+    }
 }

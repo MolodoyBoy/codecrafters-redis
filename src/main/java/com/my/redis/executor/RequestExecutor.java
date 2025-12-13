@@ -9,22 +9,26 @@ import com.my.redis.data_storage.ListDataStorage;
 import com.my.redis.data_storage.MapDataStorage;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.*;
 import static com.my.redis.Command.*;
+import static java.util.function.Function.*;
+import static java.util.stream.Collectors.*;
 
 public class RequestExecutor {
 
     private final Map<Command, CommandExecutor> commandExecutors;
 
     public RequestExecutor(MapDataStorage mapDataStorage, ListDataStorage listDataStorage) {
-        this.commandExecutors = Map.of(
-            PING, new PingCommandExecutor(),
-            ECHO, new EchoCommandExecutor(),
-            SET, new SetCommandExecutor(mapDataStorage),
-            GET, new GetCommandExecutor(mapDataStorage),
-            RPUSH, new RPUSHCommandExecutor(listDataStorage)
-        );
+        this.commandExecutors = Stream.of(
+            new PingCommandExecutor(),
+            new EchoCommandExecutor(),
+            new SetCommandExecutor(mapDataStorage),
+            new GetCommandExecutor(mapDataStorage),
+            new RPUSHCommandExecutor(listDataStorage),
+            new LRANGECommandExecutor(listDataStorage)
+        ).collect(toMap(CommandExecutor::supportedCommand, identity()));
     }
 
     public String execute(Data data) {

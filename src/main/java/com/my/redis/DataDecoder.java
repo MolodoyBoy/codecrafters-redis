@@ -68,7 +68,7 @@ public class DataDecoder {
 
         for (int index = 0; index < arrayLength; index++) {
             Data encodedData = encodeData();
-            arrayData.addData(index, encodedData);
+            arrayData.addData(encodedData);
         }
 
         return arrayData;

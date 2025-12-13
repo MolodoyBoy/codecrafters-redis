@@ -1,9 +1,11 @@
 package com.my.redis.data;
 
+import static com.my.redis.Delimiter.*;
 import static com.my.redis.data.DataType.*;
 
 public class ArrayData implements Data {
 
+    private int position;
     private final Data[] data;
 
     public ArrayData(int length) {
@@ -14,12 +16,16 @@ public class ArrayData implements Data {
         }
     }
 
-    public void addData(int index, Data value) {
+    public void addData(Data value) {
         if (data == null) {
             throw new IllegalStateException("Cannot add data to null array");
         }
 
-        data[index] = value;
+        if (position == data.length) {
+            throw new IndexOutOfBoundsException("ArrayData is full");
+        }
+
+        data[position++] = value;
     }
 
     public Data[] getData() {
@@ -46,7 +52,9 @@ public class ArrayData implements Data {
             return sb.toString();
         }
 
-        sb.append(data.length);
+        sb.append(position);
+        sb.append(CRLF);
+
         for (Data d : data) {
             sb.append(d.encode());
         }
