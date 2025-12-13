@@ -16,6 +16,10 @@ public class ArrayData implements Data {
         }
     }
 
+    public ArrayData(Data[] data) {
+       this.data = data;
+    }
+
     public void addData(Data value) {
         if (data == null) {
             throw new IllegalStateException("Cannot add data to null array");

@@ -18,14 +18,25 @@ public class ListDataStorage {
         return list == null ? 0 : list.size();
     }
 
-    public synchronized String remove(String listKey, int count) {
+    public synchronized List<String> remove(String listKey, int count) {
         List<String> list = cache.get(listKey);
         if (list == null || list.isEmpty()) {
             return null;
         }
 
+        if (count >= list.size()) {
+            List<String> removed = new LinkedList<>(list);
+            list.clear();
 
-        return list.removeFirst();
+            return removed;
+        }
+
+        List<String> removed = new LinkedList<>();
+        for (int i = 0; i < count; i++) {
+            removed.add(list.removeFirst());
+        }
+
+        return removed;
     }
 
     public synchronized int addToTail(String listKey, List<String> values) {

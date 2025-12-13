@@ -1,9 +1,12 @@
 package com.my.redis.executor;
 
 import com.my.redis.Command;
+import com.my.redis.data.ArrayData;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 import com.my.redis.data_storage.ListDataStorage;
+
+import java.util.List;
 
 import static com.my.redis.Command.*;
 import static com.my.redis.Utils.parseInt;
@@ -29,14 +32,29 @@ public class LPOPCommandExecutor implements CommandExecutor {
             throw new IllegalArgumentException("LPOP command requires one or two argument!");
         }
 
-        int count = 1;
         String listKey = toStringData(args[0]).getValue();
-        if (args.length == 2) {
-            count = parseInt(toStringData(args[1]));
+
+        if (args.length == 1) {
+            List<String> removed = cache.remove(listKey, 1);
+            if (removed == null) {
+                return new BulkStringData(null).encode();
+            }
+
+            return new BulkStringData(removed.getFirst()).encode();
         }
 
-        String removed = cache.remove(listKey, 1);
+        int count = parseInt(toStringData(args[1]));
 
-        return new BulkStringData(removed).encode();
+        List<String> removed = cache.remove(listKey, count);
+        if (removed == null) {
+            return new ArrayData(null).encode();
+        }
+
+        ArrayData arrayData = new ArrayData(removed.size());
+        for (String value : removed) {
+            arrayData.addData(new BulkStringData(value));
+        }
+
+        return arrayData.encode();
     }
 }
