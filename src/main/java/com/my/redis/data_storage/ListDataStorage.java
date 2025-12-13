@@ -17,7 +17,17 @@ public class ListDataStorage {
         List<String> list = cache.get(listKey);
         return list == null ? 0 : list.size();
     }
-    
+
+    public synchronized String remove(String listKey, int count) {
+        List<String> list = cache.get(listKey);
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+
+
+        return list.removeFirst();
+    }
+
     public synchronized int addToTail(String listKey, List<String> values) {
         List<String> list = cache.computeIfAbsent(listKey, key -> new LinkedList<>());
 
