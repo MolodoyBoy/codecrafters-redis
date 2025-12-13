@@ -1,6 +1,6 @@
 package com.my.redis.system;
 
-import com.my.redis.DataEncoder;
+import com.my.redis.DataDecoder;
 import com.my.redis.data.Data;
 import com.my.redis.executor.RequestExecutor;
 
@@ -61,9 +61,9 @@ public class RedisServer {
 
             while (!executorService.isShutdown()) {
                 try {
-                    DataEncoder dataEncoder = new DataEncoder(in);
+                    DataDecoder dataDecoder = new DataDecoder(in);
 
-                    Data data = dataEncoder.encode();
+                    Data data = dataDecoder.encode();
                     String resultMessage = requestExecutor.execute(data);
 
                     out.write(resultMessage);

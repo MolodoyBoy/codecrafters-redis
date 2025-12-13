@@ -34,4 +34,23 @@ public class ArrayData implements Data {
     public DataType getType() {
         return ARRAY;
     }
+
+    @Override
+    public String encode() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(Character.toString(getType().getValue()));
+
+        if (data == null) {
+            sb.append(new NullData().encode());
+
+            return sb.toString();
+        }
+
+        sb.append(data.length);
+        for (Data d : data) {
+            sb.append(d.encode());
+        }
+
+        return sb.toString();
+    }
 }

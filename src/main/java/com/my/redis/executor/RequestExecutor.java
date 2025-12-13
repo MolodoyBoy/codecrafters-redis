@@ -5,6 +5,7 @@ import com.my.redis.data.ArrayData;
 import com.my.redis.data.Data;
 import com.my.redis.data.DataType;
 import com.my.redis.data.StringData;
+import com.my.redis.data_storage.ListDataStorage;
 import com.my.redis.data_storage.MapDataStorage;
 
 import java.util.Map;
@@ -16,12 +17,13 @@ public class RequestExecutor {
 
     private final Map<Command, CommandExecutor> commandExecutors;
 
-    public RequestExecutor(MapDataStorage mapDataStorage) {
+    public RequestExecutor(MapDataStorage mapDataStorage, ListDataStorage listDataStorage) {
         this.commandExecutors = Map.of(
             PING, new PingCommandExecutor(),
             ECHO, new EchoCommandExecutor(),
             SET, new SetCommandExecutor(mapDataStorage),
-            GET, new GetCommandExecutor(mapDataStorage)
+            GET, new GetCommandExecutor(mapDataStorage),
+            RPUSH, new RPUSHCommandExecutor(listDataStorage)
         );
     }
 

@@ -1,5 +1,6 @@
 package com.my.redis;
 
+import com.my.redis.data_storage.ListDataStorage;
 import com.my.redis.data_storage.MapDataStorage;
 import com.my.redis.executor.RequestExecutor;
 import com.my.redis.system.ExpiredEntriesCleaner;
@@ -17,7 +18,9 @@ public class Main {
         int workerThreads = 10;
 
         MapDataStorage dataStorage = new MapDataStorage();
-        RequestExecutor requestExecutor = new RequestExecutor(dataStorage);
+        ListDataStorage listDataStorage = new ListDataStorage();
+
+        RequestExecutor requestExecutor = new RequestExecutor(dataStorage, listDataStorage);
 
         try (ExecutorService executorService = newFixedThreadPool(workerThreads);
              ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {

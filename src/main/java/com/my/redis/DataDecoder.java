@@ -10,11 +10,11 @@ import static com.my.redis.Delimiter.*;
 import static com.my.redis.data.DataType.*;
 import static java.nio.charset.StandardCharsets.*;
 
-public class DataEncoder {
+public class DataDecoder {
 
     private final BufferedInputStream in;
 
-    public DataEncoder(BufferedInputStream in) {
+    public DataDecoder(BufferedInputStream in) {
         this.in = in;
     }
 

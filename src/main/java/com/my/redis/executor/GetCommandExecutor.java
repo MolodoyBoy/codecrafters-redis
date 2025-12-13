@@ -34,10 +34,10 @@ public class GetCommandExecutor implements CommandExecutor {
             ValueData valueData = cache.get(key.getValue());
 
             if (valueData == null) {
-                return new BulkStringData(null).decorate();
+                return new BulkStringData(null).encode();
             }
 
-            return new BulkStringData(valueData.value()).decorate();
+            return new BulkStringData(valueData.value()).encode();
         }
 
         throw new IllegalArgumentException("GET arguments must be strings!");

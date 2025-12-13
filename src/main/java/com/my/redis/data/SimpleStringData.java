@@ -22,7 +22,7 @@ public class SimpleStringData implements StringData {
     }
 
     @Override
-    public String decorate() {
+    public String encode() {
         if (value == null) {
             return null;
         }

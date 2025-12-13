@@ -22,7 +22,7 @@ public class EchoCommandExecutor implements CommandExecutor {
         }
 
         if (args[0] instanceof StringData stringData) {
-            return stringData.decorate();
+            return stringData.encode();
         }
 
         throw new IllegalArgumentException("ECHO argument must be a string!");

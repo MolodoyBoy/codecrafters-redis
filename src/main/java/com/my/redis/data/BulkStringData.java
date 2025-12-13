@@ -22,7 +22,7 @@ public class BulkStringData implements StringData {
     }
 
     @Override
-    public String decorate() {
+    public String encode() {
         String parsedType = Character.toString(getType().getValue());
 
         if (value == null) {

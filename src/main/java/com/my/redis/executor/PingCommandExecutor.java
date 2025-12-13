@@ -18,6 +18,6 @@ public class PingCommandExecutor implements CommandExecutor {
             throw new IllegalArgumentException("PING command does not accept arguments!");
         }
 
-        return new SimpleStringData("PONG").decorate();
+        return new SimpleStringData("PONG").encode();
     }
 }
