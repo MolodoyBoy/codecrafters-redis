@@ -23,20 +23,40 @@ public class ListDataStorage {
 
     public synchronized List<String> get(String listKey, int start, int stop) {
         List<String> list = cache.get(listKey);
-        if (list == null) {
+        if (list == null || list.isEmpty()) {
             return List.of();
         }
 
-        if (start >= list.size()) {
+        int size = list.size();
+
+        // Convert negative indices to positive
+        // In Redis, -1 means the last element, -2 means second to last, etc.
+        if (start < 0) {
+            start = size + start;
+        }
+
+        if (stop < 0) {
+            stop = size + stop;
+        }
+
+        if (start < 0) {
+            start = 0;
+        }
+
+        if (start >= size) {
             return List.of();
         }
 
-        if (start >= stop) {
+        if (stop >= size) {
+            stop = size - 1;
+        }
+
+        if (stop < 0) {
             return List.of();
         }
 
-        if (stop >= list.size()) {
-            stop = list.size() - 1;
+        if (start > stop) {
+            return List.of();
         }
 
         return list.subList(start, stop + 1);
