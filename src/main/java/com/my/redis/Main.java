@@ -1,14 +1,32 @@
 package com.my.redis;
 
+import com.my.redis.data_storage.MapDataStorage;
+import com.my.redis.executor.RequestExecutor;
+import com.my.redis.system.ExpiredEntriesCleaner;
+import com.my.redis.system.RedisServer;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static java.util.concurrent.Executors.*;
+
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Logs from your program will appear here!");
-
         int port = 6379;
         int workerThreads = 10;
 
-        RedisServer redisServer = new RedisServer(port, workerThreads);
-        redisServer.start();
+        MapDataStorage dataStorage = new MapDataStorage();
+        RequestExecutor requestExecutor = new RequestExecutor(dataStorage);
+
+        try (ExecutorService executorService = newFixedThreadPool(workerThreads);
+             ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {
+
+            ExpiredEntriesCleaner expiredEntriesCleaner = new ExpiredEntriesCleaner(100, dataStorage, scheduledExecutorService);
+            RedisServer redisServer = new RedisServer(port, executorService, requestExecutor);
+
+            expiredEntriesCleaner.start();
+            redisServer.start();
+        }
     }
 }

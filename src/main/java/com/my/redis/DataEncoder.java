@@ -20,7 +20,7 @@ public class DataEncoder {
 
     public Data encode() {
         try {
-            int firstRead = in.read();
+            int firstRead = read();
 
             return encodeData(firstRead);
         } catch (IOException e) {
@@ -36,13 +36,8 @@ public class DataEncoder {
         int dataTypeValue;
         if (firstRead != null) {
             dataTypeValue = firstRead;
-
-            //Check expected end of stream.
-            if (dataTypeValue == -1) {
-                throw new EndOfStreamException();
-            }
         } else {
-            dataTypeValue = in.read();
+            dataTypeValue = read();
         }
 
         if (dataTypeValue == -1) {
@@ -90,7 +85,7 @@ public class DataEncoder {
         } else {
 
             // Read all string bytes from the buffer.
-            byte[] strBytes = in.readNBytes(strLength);
+            byte[] strBytes = readNBytes(strLength);
             if (strBytes.length == 0) {
                 throw new EOFException();
             }
@@ -103,7 +98,7 @@ public class DataEncoder {
             data = new String(strBytes, US_ASCII);
         }
 
-        byte[] crlfBytes = in.readNBytes(2);
+        byte[] crlfBytes = readNBytes(2);
         validateCRLF(crlfBytes);
 
         return new BulkStringData(data);
@@ -111,16 +106,16 @@ public class DataEncoder {
 
     private Data encodeSimpleString() throws IOException {
         StringBuilder sb = new StringBuilder();
-        int currentByte = in.read();
+        int currentByte = read();
 
         while (currentByte != CR) {
             sb.append((char) currentByte);
-            currentByte = in.read();
+            currentByte = read();
         }
 
         byte[] crlfBytes = new byte[2];
         crlfBytes[0] = (byte) currentByte;
-        crlfBytes[1] = (byte) in.read();
+        crlfBytes[1] = (byte) read();
 
         validateCRLF(crlfBytes);
 
@@ -128,7 +123,7 @@ public class DataEncoder {
     }
 
     private Data encodeInteger() throws IOException {
-        int sign = in.read();
+        int sign = read();
 
         int signValue;
         if (sign == MINUS) {
@@ -145,35 +140,35 @@ public class DataEncoder {
     }
 
     private int encodeLength() throws IOException {
-        int firstArrayLengthDigit = in.read();
+        int firstArrayLengthDigit = read();
 
         int arrayLength;
         int currentByte;
         if (firstArrayLengthDigit == MINUS) {
 
             // check if the next byte is '1' for -1 value.
-            if (toDigit(in.read()) != 1) {
+            if (toDigit(read()) != 1) {
                 throw new IllegalArgumentException("Invalid array format!");
             }
 
             arrayLength = -1;
-            currentByte = in.read();
+            currentByte = read();
 
         } else {
             arrayLength = toDigit(firstArrayLengthDigit);
-            currentByte = in.read();
+            currentByte = read();
 
             if (arrayLength != 0) {
                 while (currentByte != CR) {
                     arrayLength = arrayLength * 10 + toDigit(currentByte);
-                    currentByte = in.read();
+                    currentByte = read();
                 }
             }
         }
 
         byte[] crlfBytes = new byte[2];
         crlfBytes[0] = (byte) currentByte;
-        crlfBytes[1] = (byte) in.read();
+        crlfBytes[1] = (byte) read();
 
         validateCRLF(crlfBytes);
 
@@ -201,5 +196,23 @@ public class DataEncoder {
         if (crlfBytes[0] != CR ||crlfBytes[1] != LF) {  // Skip '\r' and '\n'
             throw new IllegalArgumentException("Invalid array format!");
         }
+    }
+
+    private int read() throws IOException {
+        int read = in.read();
+        if (read == -1) {
+            throw new EOFException("Unexpected end of stream!");
+        }
+
+        return read;
+    }
+
+    private byte[] readNBytes(int n) throws IOException {
+        byte[] bytes = in.readNBytes(n);
+        if (bytes.length != n) {
+            throw new EOFException("Unexpected end of stream!");
+        }
+
+        return bytes;
     }
 }

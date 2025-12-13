@@ -1,5 +1,6 @@
-package com.my.redis;
+package com.my.redis.system;
 
+import com.my.redis.DataEncoder;
 import com.my.redis.data.Data;
 import com.my.redis.executor.RequestExecutor;
 
@@ -8,23 +9,21 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class RedisServer {
 
     private final int port;
-    private final int workerThreads;
     private final RequestExecutor requestExecutor;
+    private final ExecutorService executorService;
 
-    public RedisServer(int port, int workerThreads) {
+    public RedisServer(int port, ExecutorService executorService, RequestExecutor requestExecutor) {
         this.port = port;
-        this.workerThreads = workerThreads;
-        this.requestExecutor = new RequestExecutor();
+        this.requestExecutor = requestExecutor;
+        this.executorService = executorService;
     }
 
     public void start() {
-        try (ServerSocket serverSocket = new ServerSocket();
-             ExecutorService executorService = Executors.newFixedThreadPool(workerThreads)) {
+        try (ServerSocket serverSocket = new ServerSocket()) {
 
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(port));
@@ -60,7 +59,7 @@ public class RedisServer {
         try (BufferedInputStream in = getBufferedInputStream(clientSocket);
              BufferedWriter out = getBufferedWriter(clientSocket)) {
 
-            while (true) {
+            while (!executorService.isShutdown()) {
                 try {
                     DataEncoder dataEncoder = new DataEncoder(in);
 
@@ -73,8 +72,6 @@ public class RedisServer {
                     System.err.println("Exception while handling client: " + e.getMessage());
                     e.printStackTrace();
                     break;
-                } catch (EndOfStreamException e) {
-                   // Client ended the stream.
                 }
             }
         }

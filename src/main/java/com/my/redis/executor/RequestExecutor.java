@@ -16,9 +16,7 @@ public class RequestExecutor {
 
     private final Map<Command, CommandExecutor> commandExecutors;
 
-    public RequestExecutor() {
-        MapDataStorage mapDataStorage = new MapDataStorage();
-
+    public RequestExecutor(MapDataStorage mapDataStorage) {
         this.commandExecutors = Map.of(
             PING, new PingCommandExecutor(),
             ECHO, new EchoCommandExecutor(),
