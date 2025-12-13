@@ -18,14 +18,10 @@ public class DataDecoder {
         this.in = in;
     }
 
-    public Data encode() {
-        try {
-            int firstRead = read();
+    public Data encode() throws IOException {
+        int firstRead = read();
 
-            return encodeData(firstRead);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Invalid data format!", e);
-        }
+        return encodeData(firstRead);
     }
 
     private Data encodeData() throws IOException {

@@ -28,6 +28,7 @@ public class RequestExecutor {
             new GetCommandExecutor(mapDataStorage),
             new LLENCommandExecutor(listDataStorage),
             new LPOPCommandExecutor(listDataStorage),
+            new BLPOPCommandExecutor(listDataStorage),
             new RPUSHCommandExecutor(listDataStorage),
             new LPUSHCommandExecutor(listDataStorage),
             new LRANGECommandExecutor(listDataStorage)

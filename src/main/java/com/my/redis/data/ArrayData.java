@@ -18,6 +18,7 @@ public class ArrayData implements Data {
 
     public ArrayData(Data[] data) {
        this.data = data;
+       this.position = data.length;
     }
 
     public void addData(Data value) {

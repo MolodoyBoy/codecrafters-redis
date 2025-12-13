@@ -13,6 +13,14 @@ public class Utils {
         }
     }
 
+    public static Double parseDouble(StringData stringData) {
+        try {
+            return Double.parseDouble(stringData.getValue());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Expected integer value but got: " + stringData.getValue());
+        }
+    }
+
     public static StringData toStringData(Data data) {
         if (data instanceof StringData stringData) {
             return stringData;

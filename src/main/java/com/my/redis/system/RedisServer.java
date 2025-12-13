@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
 public class RedisServer {
@@ -68,6 +69,8 @@ public class RedisServer {
 
                     out.write(resultMessage);
                     out.flush();
+                } catch (EOFException e) {
+
                 } catch (IOException | IllegalArgumentException  e) {
                     System.err.println("Exception while handling client: " + e.getMessage());
                     e.printStackTrace();
@@ -82,6 +85,6 @@ public class RedisServer {
     }
 
     private BufferedWriter getBufferedWriter(Socket clientSocket) throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+        return new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.US_ASCII));
     }
 }
