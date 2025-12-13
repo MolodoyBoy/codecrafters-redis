@@ -13,6 +13,11 @@ public class ListDataStorage {
         this.cache = new HashMap<>();
     }
 
+    public synchronized int length(String listKey) {
+        List<String> list = cache.get(listKey);
+        return list == null ? 0 : list.size();
+    }
+    
     public synchronized int addToTail(String listKey, List<String> values) {
         List<String> list = cache.computeIfAbsent(listKey, key -> new LinkedList<>());
 

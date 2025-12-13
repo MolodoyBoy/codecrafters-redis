@@ -26,6 +26,7 @@ public class RequestExecutor {
             new EchoCommandExecutor(),
             new SetCommandExecutor(mapDataStorage),
             new GetCommandExecutor(mapDataStorage),
+            new LLENCommandExecutor(listDataStorage),
             new RPUSHCommandExecutor(listDataStorage),
             new LPUSHCommandExecutor(listDataStorage),
             new LRANGECommandExecutor(listDataStorage)

@@ -4,10 +4,11 @@ import com.my.redis.Command;
 import com.my.redis.data.ArrayData;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
-import com.my.redis.data.StringData;
 import com.my.redis.data_storage.ListDataStorage;
 
 import static com.my.redis.Command.*;
+import static com.my.redis.Utils.parseInt;
+import static com.my.redis.Utils.toStringData;
 
 public class LRANGECommandExecutor implements CommandExecutor {
 
@@ -29,9 +30,9 @@ public class LRANGECommandExecutor implements CommandExecutor {
             throw new IllegalArgumentException("LRANGE command requires exactly 3 arguments");
         }
 
-        String listKey = getData(args[0]).getValue();
-        int stop = parseStringData(getData(args[2]));
-        int start = parseStringData(getData(args[1]));
+        String listKey = toStringData(args[0]).getValue();
+        int stop = parseInt(toStringData(args[2]));
+        int start = parseInt(toStringData(args[1]));
 
         var values = cache.get(listKey, start, stop);
         ArrayData arrayData = new ArrayData(values.size());
@@ -41,21 +42,5 @@ public class LRANGECommandExecutor implements CommandExecutor {
         }
 
         return arrayData.encode();
-    }
-
-    private int parseStringData(StringData stringData) {
-        try {
-            return Integer.parseInt(stringData.getValue());
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Expected integer value but got: " + stringData.getValue());
-        }
-    }
-
-    private StringData getData(Data data) {
-        if (data instanceof StringData stringData) {
-            return stringData;
-        }
-
-        throw new IllegalArgumentException("Expected StringData type");
     }
 }
