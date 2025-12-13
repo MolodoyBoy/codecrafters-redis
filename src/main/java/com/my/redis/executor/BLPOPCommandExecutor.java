@@ -9,11 +9,9 @@ import com.my.redis.data_storage.ListDataStorage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static com.my.redis.Command.*;
 import static com.my.redis.Utils.*;
-import static java.util.concurrent.TimeUnit.*;
 
 public class BLPOPCommandExecutor implements CommandExecutor {
 
@@ -43,18 +41,9 @@ public class BLPOPCommandExecutor implements CommandExecutor {
             listKeys.add(toStringData(arg).getValue());
         }
 
-        long time;
-        double timeoutD = parseDouble(toStringData(args[lastIndex]));
-        TimeUnit unit;
-        if (timeoutD < 1) {
-            unit = MILLISECONDS;
-            time = (int) (timeoutD * 1000);
-        } else {
-            time = (int) timeoutD;
-            unit = SECONDS;
-        }
+        int timeout = parseInt(toStringData(args[lastIndex]));
 
-        Map.Entry<String, String> element = cache.poll(listKeys, time, unit);
+        Map.Entry<String, String> element = cache.poll(listKeys, timeout);
         if (element == null) {
             return new ArrayData(null).encode();
         }

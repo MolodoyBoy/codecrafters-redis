@@ -97,7 +97,7 @@ public class ListDataStorage {
         }
     }
 
-    public Map.Entry<String, String> poll(List<String> listKeys, long timeout, TimeUnit unit) {
+    public Map.Entry<String, String> poll(List<String> listKeys, long timeout) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -107,7 +107,7 @@ public class ListDataStorage {
                 if (timeout == 0) {
                     condition.await();
                 } else {
-                    boolean signaled = condition.await(timeout, unit);
+                    boolean signaled = condition.await(timeout, SECONDS);
                     if (!signaled) {
                         return null;
                     }
