@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.Thread.*;
 import static java.util.Map.*;
+import static java.util.concurrent.TimeUnit.*;
 
 public class ListDataStorage {
 
@@ -96,7 +96,7 @@ public class ListDataStorage {
         }
     }
 
-    public Map.Entry<String, String> poll(List<String> listKeys, int timeout) {
+    public Map.Entry<String, String> poll(List<String> listKeys, long timeout) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -106,7 +106,7 @@ public class ListDataStorage {
                 if (timeout == 0) {
                     condition.await();
                 } else {
-                    boolean signaled = condition.await(timeout, TimeUnit.SECONDS);
+                    boolean signaled = condition.await(timeout, SECONDS);
                     if (!signaled) {
                         return null;
                     }

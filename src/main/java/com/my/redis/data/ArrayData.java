@@ -17,8 +17,13 @@ public class ArrayData implements Data {
     }
 
     public ArrayData(Data[] data) {
-       this.data = data;
-       this.position = data.length;
+        if (data == null) {
+            this.data = null;
+            this.position = 0;
+        } else {
+            this.data = data;
+            this.position = data.length;
+        }
     }
 
     public void addData(Data value) {
@@ -52,7 +57,8 @@ public class ArrayData implements Data {
         sb.append(Character.toString(getType().getValue()));
 
         if (data == null) {
-            sb.append(new NullData().encode());
+            sb.append(-1);
+            sb.append(CRLF);
 
             return sb.toString();
         }
