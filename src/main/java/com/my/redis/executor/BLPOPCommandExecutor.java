@@ -44,7 +44,7 @@ public class BLPOPCommandExecutor implements CommandExecutor {
         }
 
         long time;
-        long timeout = parseDouble(toStringData(args[lastIndex]));
+        long timeoutD = parseDouble(toStringData(args[lastIndex]));
         TimeUnit unit;
         if (timeoutD < 1) {
             unit = MILLISECONDS;
@@ -54,7 +54,7 @@ public class BLPOPCommandExecutor implements CommandExecutor {
             unit = SECONDS;
         }
 
-        Map.Entry<String, String> element = cache.poll(listKeys, timeout, unit);
+        Map.Entry<String, String> element = cache.poll(listKeys, time, unit);
         if (element == null) {
             return new ArrayData(null).encode();
         }
