@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -96,7 +97,7 @@ public class ListDataStorage {
         }
     }
 
-    public Map.Entry<String, String> poll(List<String> listKeys, long timeout) {
+    public Map.Entry<String, String> poll(List<String> listKeys, long timeout, TimeUnit unit) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -106,7 +107,7 @@ public class ListDataStorage {
                 if (timeout == 0) {
                     condition.await();
                 } else {
-                    boolean signaled = condition.await(timeout, SECONDS);
+                    boolean signaled = condition.await(timeout, unit);
                     if (!signaled) {
                         return null;
                     }
