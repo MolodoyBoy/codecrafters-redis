@@ -44,7 +44,7 @@ public class BLPOPCommandExecutor implements CommandExecutor {
         }
 
         long time;
-        long timeoutD = parseDouble(toStringData(args[lastIndex]));
+        double timeoutD = parseDouble(toStringData(args[lastIndex]));
         TimeUnit unit;
         if (timeoutD < 1) {
             unit = MILLISECONDS;
