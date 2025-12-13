@@ -6,23 +6,23 @@ import com.my.redis.data_storage.ListDataStorage;
 import java.util.List;
 import java.util.function.BiFunction;
 
-import static com.my.redis.Command.RPUSH;
+import static com.my.redis.Command.*;
 
-public class RPUSHCommandExecutor extends BasePUSHCommandExecutor {
+public class LPUSHCommandExecutor extends BasePUSHCommandExecutor {
 
     private final ListDataStorage cache;
 
-    public RPUSHCommandExecutor(ListDataStorage cache) {
+    public LPUSHCommandExecutor(ListDataStorage cache) {
         this.cache = cache;
     }
 
     @Override
     public Command supportedCommand() {
-        return RPUSH;
+        return LPUSH;
     }
 
     @Override
     protected BiFunction<String, List<String>, Integer> getPushFunction() {
-        return cache::addToTail;
+        return cache::addToHead;
     }
 }

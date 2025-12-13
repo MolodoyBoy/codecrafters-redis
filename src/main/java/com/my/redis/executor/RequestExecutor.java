@@ -27,6 +27,7 @@ public class RequestExecutor {
             new SetCommandExecutor(mapDataStorage),
             new GetCommandExecutor(mapDataStorage),
             new RPUSHCommandExecutor(listDataStorage),
+            new LPUSHCommandExecutor(listDataStorage),
             new LRANGECommandExecutor(listDataStorage)
         ).collect(toMap(CommandExecutor::supportedCommand, identity()));
     }

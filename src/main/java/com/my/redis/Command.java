@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.toMap;
 
 public enum Command {
 
-    PING(), ECHO(), SET(PX), GET(), RPUSH(), LRANGE();
+    PING(), ECHO(), SET(PX), GET(), RPUSH(), LRANGE(), LPUSH();
 
     private final String command;
     private final Set<Option> options;
