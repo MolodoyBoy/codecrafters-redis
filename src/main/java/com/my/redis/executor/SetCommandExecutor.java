@@ -3,7 +3,6 @@ package com.my.redis.executor;
 import com.my.redis.Command;
 import com.my.redis.Option;
 import com.my.redis.data.Data;
-import com.my.redis.data.IntegerData;
 import com.my.redis.data.SimpleStringData;
 import com.my.redis.data.StringData;
 import com.my.redis.data_storage.MapDataStorage;
@@ -14,8 +13,7 @@ import java.time.temporal.ChronoUnit;
 
 import static com.my.redis.Command.*;
 import static com.my.redis.Option.*;
-import static java.time.ZoneOffset.*;
-import static java.time.LocalDateTime.*;
+import static java.lang.System.currentTimeMillis;
 
 public class SetCommandExecutor implements CommandExecutor {
 
@@ -83,7 +81,7 @@ public class SetCommandExecutor implements CommandExecutor {
             Duration duration = Duration.of(time, ChronoUnit.MILLIS);
 
             long millis = duration.toMillis();
-            return now().toInstant(UTC).toEpochMilli() + millis;
+            return currentTimeMillis() + millis;
         }
 
         throw new IllegalArgumentException("Invalid time argument!");

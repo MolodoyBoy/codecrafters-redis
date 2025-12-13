@@ -8,8 +8,6 @@ import com.my.redis.data_storage.MapDataStorage;
 import com.my.redis.data_storage.ValueData;
 
 import static com.my.redis.Command.GET;
-import static java.time.LocalDateTime.now;
-import static java.time.ZoneOffset.UTC;
 
 public class GetCommandExecutor implements CommandExecutor {
 
@@ -39,21 +37,9 @@ public class GetCommandExecutor implements CommandExecutor {
                 return new BulkStringData(null).decorate();
             }
 
-            Long expireAtMillis = valueData.expireAtMillis();
-            if (expireAtMillis != null) {
-                long nowMillis = now().toInstant(UTC).toEpochMilli();
-
-                if (nowMillis >= expireAtMillis) {
-                    cache.remove(key.getValue());
-                    return new BulkStringData(null).decorate();
-                }
-
-                return new BulkStringData(valueData.value()).decorate();
-            }
-
             return new BulkStringData(valueData.value()).decorate();
         }
 
-        throw new IllegalArgumentException("SET arguments must be strings!");
+        throw new IllegalArgumentException("GET arguments must be strings!");
     }
 }
