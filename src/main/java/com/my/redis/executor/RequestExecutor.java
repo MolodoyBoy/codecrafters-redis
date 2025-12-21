@@ -5,8 +5,10 @@ import com.my.redis.data.ArrayData;
 import com.my.redis.data.Data;
 import com.my.redis.data.DataType;
 import com.my.redis.data.StringData;
+import com.my.redis.data_storage.KeySpaceStorage;
 import com.my.redis.data_storage.ListDataStorage;
 import com.my.redis.data_storage.MapDataStorage;
+import com.my.redis.data_storage.StreamDataStorage;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -20,7 +22,10 @@ public class RequestExecutor {
 
     private final Map<Command, CommandExecutor> commandExecutors;
 
-    public RequestExecutor(MapDataStorage mapDataStorage, ListDataStorage listDataStorage) {
+    public RequestExecutor(KeySpaceStorage keySpaceStorage,
+                           MapDataStorage mapDataStorage,
+                           ListDataStorage listDataStorage,
+                           StreamDataStorage streamDataStorage) {
         this.commandExecutors = Stream.of(
             new PingCommandExecutor(),
             new EchoCommandExecutor(),
@@ -32,7 +37,8 @@ public class RequestExecutor {
             new RPUSHCommandExecutor(listDataStorage),
             new LPUSHCommandExecutor(listDataStorage),
             new LRANGECommandExecutor(listDataStorage),
-            new TYPECommandExecutor(mapDataStorage, listDataStorage)
+            new TYPECommandExecutor(keySpaceStorage),
+            new XADDCommandExecutor(streamDataStorage)
         ).collect(toMap(CommandExecutor::supportedCommand, identity()));
     }
 
@@ -43,7 +49,7 @@ public class RequestExecutor {
             case NULL -> null;
             case ARRAY -> getArrayCommandArgs(data);
             case BULK_STRING, SIMPLE_STRING -> getStringCommandArgs(data);
-            case INTEGER -> throw new IllegalArgumentException("Invalid command type: INTEGER!");
+            case INTEGER, ERROR -> throw new IllegalArgumentException("Invalid command type: INTEGER!");
         };
 
         if (commandArgs == null) {

@@ -48,9 +48,9 @@ public class DataDecoder {
         return switch (dataType) {
             case NULL -> new NullData();
             case ARRAY -> encodeArray();
-            case INTEGER -> throw new IllegalArgumentException("Invalid data type for integer encoding!");
             case BULK_STRING -> encodeBulkString();
             case SIMPLE_STRING -> encodeSimpleString();
+            case INTEGER, ERROR -> throw new IllegalArgumentException("Invalid data type for encoding!");
         };
     }
 

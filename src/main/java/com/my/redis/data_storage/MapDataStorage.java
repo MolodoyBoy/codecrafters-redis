@@ -1,7 +1,5 @@
 package com.my.redis.data_storage;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
@@ -14,13 +12,15 @@ import static java.lang.Thread.*;
 
 public class MapDataStorage {
 
+    private static final Class<ValueData> CLASS = ValueData.class;
+
     private final Queue<KeyValuePair> queue;
     private final ReadWriteLock readWriteLock;
-    private final Map<String, ValueData> cache;
+    private final KeySpaceStorage keySpaceStorage;
 
-    public MapDataStorage() {
-        this.cache = new HashMap<>();
+    public MapDataStorage(KeySpaceStorage keySpaceStorage) {
         this.queue = new PriorityQueue<>();
+        this.keySpaceStorage = keySpaceStorage;
         this.readWriteLock = new ReentrantReadWriteLock();
     }
 
@@ -32,7 +32,7 @@ public class MapDataStorage {
      *  2. If expired, remove it under a write lock.
      */
     public ValueData get(String key) {
-        Supplier<ValueData> readTask = () -> cache.get(key);
+        Supplier<ValueData> readTask = () -> keySpaceStorage.get(key, CLASS);
 
         ValueData valueData = executeWithLock(readWriteLock.readLock(), readTask);
         if (valueData == null) {
@@ -45,7 +45,7 @@ public class MapDataStorage {
             return valueData;
         }
 
-        Supplier<ValueData> cleanupTask = () -> cache.remove(key);
+        Supplier<ValueData> cleanupTask = () -> keySpaceStorage.remove(key, CLASS);
         executeWithLock(readWriteLock.writeLock(), cleanupTask);
 
         return null;
@@ -57,7 +57,7 @@ public class MapDataStorage {
                 queue.add(new KeyValuePair(key, value));
             }
 
-            cache.put(key, value);
+            keySpaceStorage.put(key, value);
 
             return null;
         };
@@ -83,7 +83,7 @@ public class MapDataStorage {
                 queue.poll();
 
                 // Double check to avoid removing non-expired entries if they were updated
-                cache.remove(element.key(), element.value());
+                keySpaceStorage.remove(element.key(), element.value());
 
                 element = queue.peek();
                 iterations++;

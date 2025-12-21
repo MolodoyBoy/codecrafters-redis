@@ -1,7 +1,6 @@
 package com.my.redis.data_storage;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +13,14 @@ import static java.util.Map.*;
 
 public class ListDataStorage {
 
+    private static final Class<ListStorageValue> CLASS = ListStorageValue.class;
+
     private final Condition condition;
     private final ReadWriteLock readWriteLock;
-    private final Map<String, List<String>> cache;
+    private final KeySpaceStorage keySpaceStorage;
 
-    public ListDataStorage() {
-        this.cache = new HashMap<>();
+    public ListDataStorage(KeySpaceStorage keySpaceStorage) {
+        this.keySpaceStorage = keySpaceStorage;
         this.readWriteLock = new ReentrantReadWriteLock(true);
         this.condition = readWriteLock.writeLock().newCondition();
     }
@@ -28,18 +29,8 @@ public class ListDataStorage {
         readWriteLock.readLock().lock();
 
         try {
-            List<String> list = cache.get(listKey);
+            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
             return list == null ? 0 : list.size();
-        } finally {
-            readWriteLock.readLock().unlock();
-        }
-    }
-
-    public boolean containsKey(String listKey) {
-        readWriteLock.readLock().lock();
-
-        try {
-            return cache.containsKey(listKey);
         } finally {
             readWriteLock.readLock().unlock();
         }
@@ -49,13 +40,13 @@ public class ListDataStorage {
         readWriteLock.writeLock().lock();
 
         try {
-            List<String> list = cache.get(listKey);
+            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
             if (list == null || list.isEmpty()) {
                 return null;
             }
 
             if (count >= list.size()) {
-                List<String> removed = new LinkedList<>(list);
+                List<String> removed = new LinkedList<>(list.value());
                 list.clear();
 
                 return removed;
@@ -76,7 +67,7 @@ public class ListDataStorage {
         readWriteLock.writeLock().lock();
 
         try {
-            List<String> list = cache.computeIfAbsent(listKey, key -> new LinkedList<>());
+            ListStorageValue list = keySpaceStorage.computeIfAbsent(listKey, new ListStorageValue(), CLASS);
 
             list.addAll(values);
 
@@ -92,10 +83,11 @@ public class ListDataStorage {
         readWriteLock.writeLock().lock();
 
         try {
-            List<String> list = cache.computeIfAbsent(listKey, key -> new LinkedList<>());
+            ListStorageValue list = keySpaceStorage.computeIfAbsent(listKey, new ListStorageValue(), CLASS);
 
+            List<String> listValue = list.value;
             for (String value : values) {
-                list.addFirst(value);
+                listValue.addFirst(value);
             }
 
             condition.signalAll();
@@ -126,7 +118,7 @@ public class ListDataStorage {
                 }
             }
 
-            return entry(listKey, cache.get(listKey).removeFirst());
+            return entry(listKey, keySpaceStorage.get(listKey, CLASS).removeFirst());
         } catch (InterruptedException e) {
             currentThread().interrupt();
             return null;
@@ -137,7 +129,7 @@ public class ListDataStorage {
 
     private String findAnyNotEmptyList(List<String> listKeys) {
         for (String listKey : listKeys) {
-            List<String> list = cache.get(listKey);
+            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
             if (list != null && !list.isEmpty()) {
                 return listKey;
             }
@@ -150,7 +142,7 @@ public class ListDataStorage {
         readWriteLock.readLock().lock();
 
         try {
-            List<String> list = cache.get(listKey);
+            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
             if (list == null || list.isEmpty()) {
                 return List.of();
             }
@@ -187,9 +179,41 @@ public class ListDataStorage {
                 return List.of();
             }
 
-            return list.subList(start, stop + 1);
+            return list.value.subList(start, stop + 1);
         } finally {
             readWriteLock.readLock().unlock();
+        }
+    }
+
+    private record ListStorageValue(List<String> value) implements StorageValue {
+
+        public ListStorageValue() {
+            this(new LinkedList<>());
+        }
+
+        public int size() {
+            return value.size();
+        }
+
+        public void clear() {
+            value.clear();
+        }
+
+        public void addAll(List<String> values) {
+            value.addAll(values);
+        }
+
+        public String removeFirst() {
+            return value.removeFirst();
+        }
+
+        public boolean isEmpty() {
+            return value.isEmpty();
+        }
+
+        @Override
+        public String type() {
+            return "list";
         }
     }
 }

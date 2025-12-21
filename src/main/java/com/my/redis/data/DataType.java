@@ -9,6 +9,7 @@ import static java.util.stream.Collectors.*;
 public enum DataType {
 
     NULL('_'),
+    ERROR('-'),
     ARRAY('*'),
     INTEGER(':'),
     BULK_STRING('$'),
