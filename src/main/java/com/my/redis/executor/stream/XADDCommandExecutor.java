@@ -6,7 +6,7 @@ import com.my.redis.data.Data;
 import com.my.redis.data.SimpleError;
 import com.my.redis.data_storage.stream.StreamDataStorage;
 import com.my.redis.data_storage.stream.StreamId;
-import com.my.redis.data_storage.stream.StreamKeyValuePair;
+import com.my.redis.data_storage.stream.StreamEntry;
 import com.my.redis.exception.ValidationException;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.base.CommandExecutor;
@@ -43,12 +43,12 @@ public class XADDCommandExecutor implements CommandExecutor {
 
             StreamId streamId = getStreamId(streamIdString);
 
-            List<StreamKeyValuePair> keyPairs = new ArrayList<>();
+            List<StreamEntry> keyPairs = new ArrayList<>();
             for (int i = 2; i < args.length; i += 2) {
                 String key = parseString(args[i]);
                 String value = parseString(args[i + 1]);
 
-                keyPairs.add(new StreamKeyValuePair(key, value));
+                keyPairs.add(new StreamEntry(key, value));
             }
 
             StreamId result = cache.addEntries(streamKey, streamId, keyPairs);

@@ -23,7 +23,22 @@ public class StreamDataStorage {
         this.readWriteLock = new ReentrantReadWriteLock();
     }
 
-    public StreamId addEntries(String key, StreamId streamId, List<StreamKeyValuePair> keyValuePairs) {
+    public NavigableMap<StreamId, StreamEntries> getInRange(String key, StreamId start, StreamId end) {
+        Lock readLock = readWriteLock.readLock();
+        readLock.lock();
+
+        try {
+            Stream stream = keySpaceStorage.get(key, CLASS);
+
+            var streamValue = stream.value();
+
+            return streamValue.subMap(start, true, end, true);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public StreamId addEntries(String key, StreamId streamId, List<StreamEntry> keyValuePairs) {
         Lock writeLock = readWriteLock.writeLock();
         writeLock.lock();
 
