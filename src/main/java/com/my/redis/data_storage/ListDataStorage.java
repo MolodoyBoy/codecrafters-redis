@@ -1,5 +1,6 @@
 package com.my.redis.data_storage;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.Thread.*;
 import static java.util.Map.*;
-import static java.util.concurrent.TimeUnit.*;
 
 public class ListDataStorage {
 
@@ -30,6 +30,16 @@ public class ListDataStorage {
         try {
             List<String> list = cache.get(listKey);
             return list == null ? 0 : list.size();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    public boolean containsKey(String listKey) {
+        readWriteLock.readLock().lock();
+
+        try {
+            return cache.containsKey(listKey);
         } finally {
             readWriteLock.readLock().unlock();
         }
@@ -96,8 +106,9 @@ public class ListDataStorage {
         }
     }
 
-    public Map.Entry<String, String> poll(List<String> listKeys, long timeout) {
-        long nanosRemaining = SECONDS.toNanos(timeout);
+    public Map.Entry<String, String> poll(List<String> listKeys, Duration duration) {
+        long timeout = duration.toNanos();
+        long nanosRemaining = duration.toNanos();
 
         readWriteLock.writeLock().lock();
 

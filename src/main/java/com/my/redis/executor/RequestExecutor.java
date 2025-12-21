@@ -31,7 +31,8 @@ public class RequestExecutor {
             new BLPOPCommandExecutor(listDataStorage),
             new RPUSHCommandExecutor(listDataStorage),
             new LPUSHCommandExecutor(listDataStorage),
-            new LRANGECommandExecutor(listDataStorage)
+            new LRANGECommandExecutor(listDataStorage),
+            new TYPECommandExecutor(mapDataStorage, listDataStorage)
         ).collect(toMap(CommandExecutor::supportedCommand, identity()));
     }
 

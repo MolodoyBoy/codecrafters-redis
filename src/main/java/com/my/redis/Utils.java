@@ -21,6 +21,14 @@ public class Utils {
         }
     }
 
+    public static String parseString(Data data) {
+        if (data instanceof StringData stringData) {
+            return stringData.getValue();
+        }
+
+        throw new IllegalArgumentException("Expected StringData type");
+    }
+
     public static StringData toStringData(Data data) {
         if (data instanceof StringData stringData) {
             return stringData;
