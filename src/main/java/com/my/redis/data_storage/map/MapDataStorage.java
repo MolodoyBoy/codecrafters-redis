@@ -1,4 +1,6 @@
-package com.my.redis.data_storage;
+package com.my.redis.data_storage.map;
+
+import com.my.redis.data_storage.key_space.KeySpaceStorage;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -12,7 +14,7 @@ import static java.lang.Thread.*;
 
 public class MapDataStorage {
 
-    private static final Class<ValueData> CLASS = ValueData.class;
+    private static final Class<Data> CLASS = Data.class;
 
     private final Queue<KeyValuePair> queue;
     private final ReadWriteLock readWriteLock;
@@ -31,10 +33,10 @@ public class MapDataStorage {
      *  1. Read the value under a read lock.
      *  2. If expired, remove it under a write lock.
      */
-    public ValueData get(String key) {
-        Supplier<ValueData> readTask = () -> keySpaceStorage.get(key, CLASS);
+    public String get(String key) {
+        Supplier<Data> readTask = () -> keySpaceStorage.get(key, CLASS);
 
-        ValueData valueData = executeWithLock(readWriteLock.readLock(), readTask);
+        Data valueData = executeWithLock(readWriteLock.readLock(), readTask);
         if (valueData == null) {
             return null;
         }
@@ -42,7 +44,7 @@ public class MapDataStorage {
         long nowMillis = currentTimeMillis();
         Long expireAtMillis = valueData.expireAtMillis();
         if (expireAtMillis == null || nowMillis < expireAtMillis) {
-            return valueData;
+            return valueData.value();
         }
 
         Supplier<Void> cleanupTask = () -> {
@@ -55,13 +57,14 @@ public class MapDataStorage {
         return null;
     }
 
-    public void put(String key, ValueData value) {
+    public void put(String key, String value, Long expireAtMillis) {
         Supplier<Void> task = () -> {
-            if (value.expireAtMillis() != null) {
-                queue.add(new KeyValuePair(key, value));
+            Data valueData = new Data(value, expireAtMillis);
+            if (expireAtMillis != null) {
+                queue.add(new KeyValuePair(key, valueData));
             }
 
-            keySpaceStorage.put(key, value);
+            keySpaceStorage.put(key, valueData);
 
             return null;
         };
@@ -109,7 +112,7 @@ public class MapDataStorage {
         }
     }
 
-    private record KeyValuePair(String key, ValueData value) implements Comparable<KeyValuePair> {
+    private record KeyValuePair(String key, Data value) implements Comparable<KeyValuePair> {
 
         @Override
         public int compareTo(KeyValuePair o) {

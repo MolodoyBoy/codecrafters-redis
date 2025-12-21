@@ -1,12 +1,13 @@
-package com.my.redis.executor;
+package com.my.redis.executor.map;
 
 import com.my.redis.Command;
 import com.my.redis.Option;
 import com.my.redis.data.Data;
 import com.my.redis.data.SimpleStringData;
 import com.my.redis.data.StringData;
-import com.my.redis.data_storage.MapDataStorage;
-import com.my.redis.data_storage.ValueData;
+import com.my.redis.data_storage.map.MapDataStorage;
+import com.my.redis.executor.args.CommandArgs;
+import com.my.redis.executor.base.CommandExecutor;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -52,7 +53,7 @@ public class SetCommandExecutor implements CommandExecutor {
         }
 
         Long expirationTime = getExpirationTime(args);
-        cache.put(key, new ValueData(value, expirationTime));
+        cache.put(key, value, expirationTime);
 
         return new SimpleStringData("OK").encode();
     }

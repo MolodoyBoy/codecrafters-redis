@@ -1,4 +1,4 @@
-package com.my.redis.data_storage;
+package com.my.redis.data_storage.stream;
 
 import java.util.LinkedList;
 import java.util.List;

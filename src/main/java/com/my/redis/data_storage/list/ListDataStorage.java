@@ -1,4 +1,7 @@
-package com.my.redis.data_storage;
+package com.my.redis.data_storage.list;
+
+import com.my.redis.data_storage.key_space.KeySpaceStorage;
+import com.my.redis.data_storage.key_space.Storage;
 
 import java.time.Duration;
 import java.util.LinkedList;
@@ -13,7 +16,7 @@ import static java.util.Map.*;
 
 public class ListDataStorage {
 
-    private static final Class<ListStorageValue> CLASS = ListStorageValue.class;
+    private static final Class<ListStorage> CLASS = ListStorage.class;
 
     private final Condition condition;
     private final ReadWriteLock readWriteLock;
@@ -29,7 +32,7 @@ public class ListDataStorage {
         readWriteLock.readLock().lock();
 
         try {
-            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
+            ListStorage list = keySpaceStorage.get(listKey, CLASS);
             return list == null ? 0 : list.size();
         } finally {
             readWriteLock.readLock().unlock();
@@ -40,7 +43,7 @@ public class ListDataStorage {
         readWriteLock.writeLock().lock();
 
         try {
-            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
+            ListStorage list = keySpaceStorage.get(listKey, CLASS);
             if (list == null || list.isEmpty()) {
                 return null;
             }
@@ -67,7 +70,7 @@ public class ListDataStorage {
         readWriteLock.writeLock().lock();
 
         try {
-            ListStorageValue list = keySpaceStorage.computeIfAbsent(listKey, new ListStorageValue(), CLASS);
+            ListStorage list = keySpaceStorage.computeIfAbsent(listKey, new ListStorage(), CLASS);
 
             list.addAll(values);
 
@@ -83,7 +86,7 @@ public class ListDataStorage {
         readWriteLock.writeLock().lock();
 
         try {
-            ListStorageValue list = keySpaceStorage.computeIfAbsent(listKey, new ListStorageValue(), CLASS);
+            ListStorage list = keySpaceStorage.computeIfAbsent(listKey, new ListStorage(), CLASS);
 
             List<String> listValue = list.value;
             for (String value : values) {
@@ -129,7 +132,7 @@ public class ListDataStorage {
 
     private String findAnyNotEmptyList(List<String> listKeys) {
         for (String listKey : listKeys) {
-            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
+            ListStorage list = keySpaceStorage.get(listKey, CLASS);
             if (list != null && !list.isEmpty()) {
                 return listKey;
             }
@@ -142,7 +145,7 @@ public class ListDataStorage {
         readWriteLock.readLock().lock();
 
         try {
-            ListStorageValue list = keySpaceStorage.get(listKey, CLASS);
+            ListStorage list = keySpaceStorage.get(listKey, CLASS);
             if (list == null || list.isEmpty()) {
                 return List.of();
             }
@@ -185,9 +188,9 @@ public class ListDataStorage {
         }
     }
 
-    private record ListStorageValue(List<String> value) implements StorageValue {
+    private record ListStorage(List<String> value) implements Storage {
 
-        public ListStorageValue() {
+        public ListStorage() {
             this(new LinkedList<>());
         }
 

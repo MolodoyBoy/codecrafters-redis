@@ -1,7 +1,7 @@
-package com.my.redis.executor;
+package com.my.redis.executor.list;
 
 import com.my.redis.Command;
-import com.my.redis.data_storage.ListDataStorage;
+import com.my.redis.data_storage.list.ListDataStorage;
 
 import java.util.List;
 import java.util.function.BiFunction;

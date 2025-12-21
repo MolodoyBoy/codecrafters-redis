@@ -1,4 +1,4 @@
-package com.my.redis.data_storage;
+package com.my.redis.data_storage.stream;
 
 import com.my.redis.exception.ValidationException;
 

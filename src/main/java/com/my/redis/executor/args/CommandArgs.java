@@ -1,4 +1,4 @@
-package com.my.redis.executor;
+package com.my.redis.executor.args;
 
 import com.my.redis.Command;
 import com.my.redis.data.Data;

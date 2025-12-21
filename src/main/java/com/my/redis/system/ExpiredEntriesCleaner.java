@@ -1,6 +1,6 @@
 package com.my.redis.system;
 
-import com.my.redis.data_storage.MapDataStorage;
+import com.my.redis.data_storage.map.MapDataStorage;
 
 import java.util.concurrent.ScheduledExecutorService;
 

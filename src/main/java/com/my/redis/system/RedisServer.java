@@ -1,8 +1,8 @@
 package com.my.redis.system;
 
-import com.my.redis.DataDecoder;
+import com.my.redis.RequestDataDecoder;
 import com.my.redis.data.Data;
-import com.my.redis.executor.RequestExecutor;
+import com.my.redis.executor.base.RequestExecutor;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -62,9 +62,9 @@ public class RedisServer {
 
             while (!executorService.isShutdown()) {
                 try {
-                    DataDecoder dataDecoder = new DataDecoder(in);
+                    RequestDataDecoder requestDataDecoder = new RequestDataDecoder(in);
 
-                    Data data = dataDecoder.encode();
+                    Data data = requestDataDecoder.encode();
                     String resultMessage = requestExecutor.execute(data);
 
                     out.write(resultMessage);

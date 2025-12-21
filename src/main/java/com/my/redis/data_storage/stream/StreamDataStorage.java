@@ -1,5 +1,7 @@
-package com.my.redis.data_storage;
+package com.my.redis.data_storage.stream;
 
+import com.my.redis.data_storage.key_space.KeySpaceStorage;
+import com.my.redis.data_storage.key_space.Storage;
 import com.my.redis.exception.ValidationException;
 
 import java.util.*;
@@ -7,7 +9,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.my.redis.data_storage.StreamEntries.initStreamEntry;
+import static com.my.redis.data_storage.stream.StreamEntries.initStreamEntry;
 
 public class StreamDataStorage {
 
@@ -86,7 +88,7 @@ public class StreamDataStorage {
         }
     }
 
-    private record Stream(NavigableMap<StreamId, StreamEntries> value) implements StorageValue {
+    private record Stream(NavigableMap<StreamId, StreamEntries> value) implements Storage {
 
         public Stream() {
             this(new TreeMap<>());

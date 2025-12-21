@@ -1,10 +1,10 @@
 package com.my.redis;
 
-import com.my.redis.data_storage.KeySpaceStorage;
-import com.my.redis.data_storage.ListDataStorage;
-import com.my.redis.data_storage.MapDataStorage;
-import com.my.redis.data_storage.StreamDataStorage;
-import com.my.redis.executor.RequestExecutor;
+import com.my.redis.data_storage.key_space.KeySpaceStorage;
+import com.my.redis.data_storage.list.ListDataStorage;
+import com.my.redis.data_storage.map.MapDataStorage;
+import com.my.redis.data_storage.stream.StreamDataStorage;
+import com.my.redis.executor.base.RequestExecutor;
 import com.my.redis.system.ExpiredEntriesCleaner;
 import com.my.redis.system.RedisServer;
 
