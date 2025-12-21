@@ -1,7 +1,6 @@
 package com.my.redis.executor;
 
 import com.my.redis.Command;
-import com.my.redis.Utils;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 import com.my.redis.data.SimpleError;
@@ -40,13 +39,7 @@ public class XADDCommandExecutor implements CommandExecutor {
             String streamKey = parseString(args[0]);
             String streamIdString = parseString(args[1]);
 
-            StreamId streamId;
-            String[] split = streamIdString.split("-");
-            if (split.length != 2) {
-                throw new IllegalArgumentException("Invalid stream ID format!");
-            } else {
-                streamId = new StreamId(Long.parseLong(split[0]), Long.parseLong(split[1]));
-            }
+            StreamId streamId = getStreamId(streamIdString);
 
             List<StreamKeyValuePair> keyPairs = new ArrayList<>();
             for (int i = 2; i < args.length; i += 2) {
@@ -62,5 +55,28 @@ public class XADDCommandExecutor implements CommandExecutor {
         } catch (ValidationException e) {
             return new SimpleError(e.getMessage()).encode();
         }
+    }
+
+    private StreamId getStreamId(String streamIdString) {
+        if (streamIdString.equals("*")) {
+            return new StreamId(null, null);
+        }
+
+        String[] parts = streamIdString.split("-");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid stream ID format!");
+        }
+
+        long timestamp = Long.parseLong(parts[0]);
+
+        String sequenceFragment = parts[1];
+        long sequence;
+        if (sequenceFragment.equals("*")) {
+            return new StreamId(timestamp, null);
+        } else {
+            sequence = Long.parseLong(sequenceFragment);
+        }
+
+        return new StreamId(timestamp, sequence);
     }
 }

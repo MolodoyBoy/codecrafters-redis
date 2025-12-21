@@ -30,4 +30,9 @@ public class SimpleStringData implements StringData {
         String parsedType = Character.toString(getType().getValue());
         return parsedType + value + CRLF;
     }
+
+    @Override
+    public String getStringValue() {
+        return value;
+    }
 }

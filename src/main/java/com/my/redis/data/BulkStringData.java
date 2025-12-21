@@ -31,4 +31,9 @@ public class BulkStringData implements StringData {
 
         return parsedType + value.length() + CRLF + value + CRLF;
     }
+
+    @Override
+    public String getStringValue() {
+        return value;
+    }
 }

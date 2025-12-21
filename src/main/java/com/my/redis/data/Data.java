@@ -5,4 +5,6 @@ public interface Data {
     DataType getType();
 
     String encode();
+
+    String getStringValue();
 }

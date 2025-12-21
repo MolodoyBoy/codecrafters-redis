@@ -72,4 +72,9 @@ public class ArrayData implements Data {
 
         return sb.toString();
     }
+
+    @Override
+    public String getStringValue() {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -34,4 +34,9 @@ public class IntegerData implements Data {
 
         return sb.toString();
     }
+
+    @Override
+    public String getStringValue() {
+        return Integer.toString(value);
+    }
 }

@@ -20,4 +20,9 @@ public class SimpleError implements Data {
     public String encode() {
         return Character.toString(ERROR.getValue()) + message + CRLF;
     }
+
+    @Override
+    public String getStringValue() {
+        return message;
+    }
 }

@@ -14,4 +14,9 @@ public class NullData implements Data {
     public String encode() {
         return Character.toString(getType().getValue()) + CRLF;
     }
+
+    @Override
+    public String getStringValue() {
+        return "null";
+    }
 }
