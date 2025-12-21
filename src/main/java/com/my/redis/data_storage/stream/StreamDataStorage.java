@@ -32,6 +32,18 @@ public class StreamDataStorage {
 
             var streamValue = stream.value();
 
+            if (start == null && end == null) {
+                return streamValue;
+            }
+
+            if (start == null) {
+                return streamValue.headMap(end, true);
+            }
+
+            if (end == null) {
+                return streamValue.tailMap(start, true);
+            }
+
             return streamValue.subMap(start, true, end, true);
         } finally {
             readLock.unlock();
