@@ -36,31 +36,31 @@ public class XADDCommandExecutor implements CommandExecutor {
             throw new IllegalArgumentException("XADD command requires at least one argument!");
         }
 
-        String streamKey = parseString(args[0]);
-        String streamIdString = parseString(args[1]);
-
-        StreamId streamId;
-        String[] split = streamIdString.split("-");
-        if (split.length != 2) {
-            throw new IllegalArgumentException("Invalid stream ID format!");
-        } else {
-            streamId = new StreamId(Long.parseLong(split[0]), Long.parseLong(split[1]));
-        }
-
-        List<StreamKeyValuePair> keyPairs = new ArrayList<>();
-        for (int i = 2; i < args.length; i += 2) {
-            String key = parseString(args[i]);
-            String value = parseString(args[i + 1]);
-
-            keyPairs.add(new StreamKeyValuePair(key, value));
-        }
-
         try {
-            cache.addEntries(streamKey, streamId, keyPairs);
+            String streamKey = parseString(args[0]);
+            String streamIdString = parseString(args[1]);
+
+            StreamId streamId;
+            String[] split = streamIdString.split("-");
+            if (split.length != 2) {
+                throw new IllegalArgumentException("Invalid stream ID format!");
+            } else {
+                streamId = new StreamId(Long.parseLong(split[0]), Long.parseLong(split[1]));
+            }
+
+            List<StreamKeyValuePair> keyPairs = new ArrayList<>();
+            for (int i = 2; i < args.length; i += 2) {
+                String key = parseString(args[i]);
+                String value = parseString(args[i + 1]);
+
+                keyPairs.add(new StreamKeyValuePair(key, value));
+            }
+
+            StreamId result = cache.addEntries(streamKey, streamId, keyPairs);
+
+            return new BulkStringData(result.toString()).encode();
         } catch (ValidationException e) {
             return new SimpleError(e.getMessage()).encode();
         }
-
-        return new BulkStringData(streamId.toString()).encode();
     }
 }
