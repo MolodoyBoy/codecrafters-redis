@@ -45,7 +45,11 @@ public class MapDataStorage {
             return valueData;
         }
 
-        Supplier<ValueData> cleanupTask = () -> keySpaceStorage.remove(key, CLASS);
+        Supplier<Void> cleanupTask = () -> {
+            keySpaceStorage.remove(key, valueData);
+            return null;
+        };
+
         executeWithLock(readWriteLock.writeLock(), cleanupTask);
 
         return null;

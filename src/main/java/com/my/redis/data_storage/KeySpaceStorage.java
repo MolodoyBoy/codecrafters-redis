@@ -1,5 +1,7 @@
 package com.my.redis.data_storage;
 
+import com.my.redis.exception.ValidationException;
+
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,25 +28,12 @@ public class KeySpaceStorage {
         try {
             return clazz.cast(storageValue);
         } catch (ClassCastException e) {
-            throw new IllegalStateException("Expected " + clazz.getSimpleName() + " but got " + storageValue.type());
+            throw new ValidationException("Expected " + clazz.getSimpleName() + " but got " + storageValue.type());
         }
     }
 
     public void put(String key, StorageValue storageValue) {
         cache.put(key, storageValue);
-    }
-
-    public <T extends StorageValue> T remove(String key, Class<T> clazz) {
-        StorageValue storageValue = cache.remove(key);
-        if (storageValue == null) {
-            return null;
-        }
-
-        try {
-            return clazz.cast(storageValue);
-        } catch (ClassCastException e) {
-            throw new IllegalStateException("Expected " + clazz.getSimpleName() + " but got " + storageValue.type());
-        }
     }
 
     public void remove(String key, StorageValue storageValue) {
@@ -57,7 +46,7 @@ public class KeySpaceStorage {
         try {
             return clazz.cast(storageValue);
         } catch (ClassCastException e) {
-            throw new IllegalStateException("Expected " + clazz.getSimpleName() + " but got " + storageValue.type());
+            throw new ValidationException("Expected " + clazz.getSimpleName() + " but got " + storageValue.type());
         }
     }
 }

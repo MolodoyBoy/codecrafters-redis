@@ -26,11 +26,11 @@ public class StreamDataStorage {
         writeLock.lock();
 
         try {
-            var stream = keySpaceStorage.computeIfAbsent(key, new Stream(), CLASS);
+            Stream stream = keySpaceStorage.computeIfAbsent(key, new Stream(), CLASS);
             var streamValue = stream.value;
 
             if (streamId.needToBeGenerated()) {
-                streamId = generateNextStreamId(key, streamId.timestampMillis());
+                streamId = generateNextStreamId(stream, streamId.timestampMillis());
             } else {
                 validateStream(streamId, streamValue);
             }
@@ -49,12 +49,11 @@ public class StreamDataStorage {
         }
     }
 
-    private StreamId generateNextStreamId(String key, Long timestampMillis) {
+    private StreamId generateNextStreamId(Stream stream, Long timestampMillis) {
         if (timestampMillis == null) {
             timestampMillis = System.currentTimeMillis();
         }
 
-        Stream stream = keySpaceStorage.get(key, CLASS);
         if (stream == null || stream.isEmpty()) {
             return new StreamId(timestampMillis, getDefaultSequence(timestampMillis));
         }
