@@ -9,8 +9,7 @@ import com.my.redis.data_storage.stream.StreamId;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.base.CommandExecutor;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.my.redis.Command.*;
 import static com.my.redis.Option.*;
@@ -37,26 +36,40 @@ public class XREADCommandExecutor implements CommandExecutor {
             throw new IllegalArgumentException("XREAD command requires at least three arguments");
         }
 
-        String arg1 = args[0].getStringValue();
+        int index = 0;
+        String arg1 = args[index++].getStringValue();
         Option option = parseOption(arg1);
         if (option == null) {
             throw new IllegalArgumentException("Unsupported option: " + arg1);
         }
 
         List<String> streamKeys = new LinkedList<>();
-
         if (option == STREAMS) {
-            int index = 1;
-            String key = args[index].getStringValue();
-            while (index < args.length && !Utils.isInt(key)) {
-                streamKeys.add(key);
-                key = args[index++].getStringValue();
+            while (index < args.length && !Utils.isStreamId(args[index].getStringValue())) {
+                streamKeys.add(args[index++].getStringValue());
             }
         }
 
-        StreamId streamId = streamConverter.convertStreamId(args[args.length - 1].getStringValue(), 0, false);
+        List<StreamId> streamIds = new LinkedList<>();
+        while (index < args.length) {
+            streamIds.add(streamConverter.convertStreamId(args[index++].getStringValue(), 0, false));
+        }
 
-        var result = cache.getInRange(streamKeys, streamId, null);
+        Iterator<String> keyIterator = streamKeys.iterator();
+        Iterator<StreamId> idIterator = streamIds.iterator();
+
+        Map<String, StreamId> ids = new LinkedHashMap<>();
+        while (keyIterator.hasNext() && idIterator.hasNext()) {
+            String streamKey = keyIterator.next();
+            StreamId streamId = idIterator.next();
+            if (streamKey == null || streamId == null) {
+                throw new IllegalArgumentException("Mismatched stream keys and IDs");
+            }
+
+            ids.put(streamKey, streamId);
+        }
+
+        var result = cache.getInRange(ids);
         return streamConverter.convertResult(result).encode();
     }
 }

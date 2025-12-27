@@ -5,9 +5,19 @@ import com.my.redis.data.StringData;
 
 public class Utils {
 
-    public static boolean isInt(String data) {
+    public static boolean isStreamId(String data) {
         try {
-            Integer.parseInt(data);
+
+            String[] split = data.split("-");
+            if (split.length == 1) {
+                Integer.parseInt(split[0]);
+            }
+
+            if (split.length == 2) {
+                Integer.parseInt(split[0]);
+                Integer.parseInt(split[1]);
+            }
+
             return true;
         } catch (NumberFormatException e) {
             return false;

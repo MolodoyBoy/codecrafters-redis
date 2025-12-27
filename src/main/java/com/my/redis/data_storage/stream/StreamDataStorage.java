@@ -26,40 +26,44 @@ public class StreamDataStorage {
     public NavigableMap<StreamId, StreamEntries> getInRange(String key,
                                                             StreamId start,
                                                             StreamId end) {
-        var result = getInRange(List.of(key), start, end);
-        return result.get(key);
-    }
-
-    public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Collection<String> keys,
-                                                                         StreamId start,
-                                                                         StreamId end) {
         Lock readLock = readWriteLock.readLock();
         readLock.lock();
 
-        var result = new HashMap<String, NavigableMap<StreamId, StreamEntries>>();
         try {
-            for (String key : keys) {
+            Stream stream = keySpaceStorage.get(key, CLASS);
+
+            var streamValue = stream.value();
+
+            if (start == null && end == null) {
+                return streamValue;
+            }
+
+            if (start == null) {
+                return streamValue.headMap(end, end.isInclusive());
+            }
+
+            if (end == null) {
+               return streamValue.tailMap(start, start.isInclusive());
+            }
+
+            return streamValue.subMap(start, start.isInclusive(), end, end.isInclusive());
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Map<String, StreamId> keys) {
+        Lock readLock = readWriteLock.readLock();
+        readLock.lock();
+
+        var result = new LinkedHashMap<String, NavigableMap<StreamId, StreamEntries>>();
+        try {
+            keys.forEach((key, streamId) -> {
                 Stream stream = keySpaceStorage.get(key, CLASS);
 
                 var streamValue = stream.value();
-
-                if (start == null && end == null) {
-                    result.put(key, streamValue);
-                    continue;
-                }
-
-                if (start == null) {
-                    result.put(key, streamValue.headMap(end, end.isInclusive()));
-                    continue;
-                }
-
-                if (end == null) {
-                    result.put(key, streamValue.tailMap(start, start.isInclusive()));
-                    continue;
-                }
-
-                result.put(key, streamValue.subMap(start, start.isInclusive(), end, end.isInclusive()));
-            }
+                result.put(key, streamValue.tailMap(streamId, streamId.isInclusive()));
+            });
         } finally {
             readLock.unlock();
         }
