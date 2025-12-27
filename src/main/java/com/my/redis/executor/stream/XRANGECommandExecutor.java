@@ -1,25 +1,22 @@
 package com.my.redis.executor.stream;
 
 import com.my.redis.Command;
-import com.my.redis.data.ArrayData;
-import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 import com.my.redis.data_storage.stream.StreamDataStorage;
-import com.my.redis.data_storage.stream.StreamEntries;
 import com.my.redis.data_storage.stream.StreamId;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.base.CommandExecutor;
-
-import java.util.NavigableMap;
 
 import static com.my.redis.Command.*;
 
 public class XRANGECommandExecutor implements CommandExecutor {
 
     private final StreamDataStorage cache;
+    private final StreamConverter streamConverter;
 
     public XRANGECommandExecutor(StreamDataStorage cache) {
         this.cache = cache;
+        this.streamConverter = new StreamConverter();
     }
 
     @Override
@@ -39,44 +36,11 @@ public class XRANGECommandExecutor implements CommandExecutor {
         String startId = args[1].getStringValue();
         String endId = args[2].getStringValue();
 
-        StreamId startStreamId = getStreamId(startId, 0);
-        StreamId endStreamId = getStreamId(endId, Long.MAX_VALUE);
+        StreamId startStreamId = streamConverter.convertStreamId(startId, 0, true);
+        StreamId endStreamId = streamConverter.convertStreamId(endId, Long.MAX_VALUE, true);
 
         var result = cache.getInRange(key, startStreamId, endStreamId);
 
-        return convertResult(result).encode();
-    }
-
-    private StreamId getStreamId(String startId, long sequence) {
-        if (startId.equals("-") || startId.equals("+")) {
-            return null;
-        }
-
-        String[] split = startId.split("-");
-        if (split.length == 1) {
-            return new StreamId(Long.parseLong(split[0]), sequence);
-        } else {
-            return new StreamId(Long.parseLong(split[0]), Long.parseLong(split[1]));
-        }
-    }
-
-    private ArrayData convertResult(NavigableMap<StreamId, StreamEntries> result) {
-        ArrayData arrayData = new ArrayData(result.size());
-        result.forEach((streamId, streamEntries) -> {
-            ArrayData keyValueArray = new ArrayData(2);
-            keyValueArray.addData(new BulkStringData(streamId.toString()));
-
-            ArrayData entriesData = new ArrayData(streamEntries.entries().size() * 2);
-            streamEntries.entries()
-                .forEach(entry -> {;
-                    entriesData.addData(new BulkStringData(entry.key()));
-                    entriesData.addData(new BulkStringData(entry.value()));
-                });
-
-            keyValueArray.addData(entriesData);
-            arrayData.addData(keyValueArray);
-        });
-
-        return arrayData;
+        return streamConverter.convertResult(result).encode();
     }
 }

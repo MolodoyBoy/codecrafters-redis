@@ -4,10 +4,14 @@ import com.my.redis.exception.ValidationException;
 
 import java.util.Comparator;
 
-public record StreamId(Long timestampMillis, Long sequence) implements Comparable<StreamId> {
+public record StreamId(Long timestampMillis, Long sequence, boolean isInclusive) implements Comparable<StreamId> {
 
     public StreamId {
-        if (timestampMillis != null && sequence != null && timestampMillis <= 0 && sequence <= 0) {
+        if (timestampMillis != null
+            && sequence != null
+            && isInclusive
+            && timestampMillis <= 0
+            && sequence <= 0) {
             throw new ValidationException("ERR The ID specified in XADD must be greater than 0-0");
         }
     }

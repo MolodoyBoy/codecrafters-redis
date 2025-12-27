@@ -23,31 +23,48 @@ public class StreamDataStorage {
         this.readWriteLock = new ReentrantReadWriteLock();
     }
 
-    public NavigableMap<StreamId, StreamEntries> getInRange(String key, StreamId start, StreamId end) {
+    public NavigableMap<StreamId, StreamEntries> getInRange(String key,
+                                                            StreamId start,
+                                                            StreamId end) {
+        var result = getInRange(List.of(key), start, end);
+        return result.get(key);
+    }
+
+    public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Collection<String> keys,
+                                                                         StreamId start,
+                                                                         StreamId end) {
         Lock readLock = readWriteLock.readLock();
         readLock.lock();
 
+        var result = new HashMap<String, NavigableMap<StreamId, StreamEntries>>();
         try {
-            Stream stream = keySpaceStorage.get(key, CLASS);
+            for (String key : keys) {
+                Stream stream = keySpaceStorage.get(key, CLASS);
 
-            var streamValue = stream.value();
+                var streamValue = stream.value();
 
-            if (start == null && end == null) {
-                return streamValue;
+                if (start == null && end == null) {
+                    result.put(key, streamValue);
+                    continue;
+                }
+
+                if (start == null) {
+                    result.put(key, streamValue.headMap(end, end.isInclusive()));
+                    continue;
+                }
+
+                if (end == null) {
+                    result.put(key, streamValue.tailMap(start, start.isInclusive()));
+                    continue;
+                }
+
+                result.put(key, streamValue.subMap(start, start.isInclusive(), end, end.isInclusive()));
             }
-
-            if (start == null) {
-                return streamValue.headMap(end, true);
-            }
-
-            if (end == null) {
-                return streamValue.tailMap(start, true);
-            }
-
-            return streamValue.subMap(start, true, end, true);
         } finally {
             readLock.unlock();
         }
+
+        return result;
     }
 
     public StreamId addEntries(String key, StreamId streamId, List<StreamEntry> keyValuePairs) {
@@ -59,7 +76,7 @@ public class StreamDataStorage {
             var streamValue = stream.value;
 
             if (streamId.needToBeGenerated()) {
-                streamId = generateNextStreamId(stream, streamId.timestampMillis());
+                streamId = generateNextStreamId(stream, streamId.timestampMillis(), streamId.isInclusive());
             } else {
                 validateStream(streamId, streamValue);
             }
@@ -78,21 +95,21 @@ public class StreamDataStorage {
         }
     }
 
-    private StreamId generateNextStreamId(Stream stream, Long timestampMillis) {
+    private StreamId generateNextStreamId(Stream stream, Long timestampMillis, boolean isInclusive) {
         if (timestampMillis == null) {
             timestampMillis = System.currentTimeMillis();
         }
 
         if (stream == null || stream.isEmpty()) {
-            return new StreamId(timestampMillis, getDefaultSequence(timestampMillis));
+            return new StreamId(timestampMillis, getDefaultSequence(timestampMillis), isInclusive);
         }
 
         var streamValue = stream.value;
         StreamId latestStreamId = streamValue.lastKey();
         if (timestampMillis > latestStreamId.timestampMillis()) {
-            return new StreamId(timestampMillis, 0L);
+            return new StreamId(timestampMillis, 0L, isInclusive);
         } else if (timestampMillis.equals(latestStreamId.timestampMillis())) {
-            return new StreamId(timestampMillis, latestStreamId.sequence() + 1);
+            return new StreamId(timestampMillis, latestStreamId.sequence() + 1, isInclusive);
         } else {
             throw new ValidationException("ERR The ID specified in XADD is equal or smaller than the target stream top item");
         }

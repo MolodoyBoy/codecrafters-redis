@@ -5,6 +5,15 @@ import com.my.redis.data.StringData;
 
 public class Utils {
 
+    public static boolean isInt(String data) {
+        try {
+            Integer.parseInt(data);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     public static int parseInt(StringData stringData) {
         try {
             return Integer.parseInt(stringData.getValue());

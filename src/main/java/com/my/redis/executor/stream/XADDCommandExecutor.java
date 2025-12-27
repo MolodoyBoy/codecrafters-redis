@@ -61,7 +61,7 @@ public class XADDCommandExecutor implements CommandExecutor {
 
     private StreamId getStreamId(String streamIdString) {
         if (streamIdString.equals("*")) {
-            return new StreamId(null, null);
+            return new StreamId(null, null, false);
         }
 
         String[] parts = streamIdString.split("-");
@@ -74,11 +74,11 @@ public class XADDCommandExecutor implements CommandExecutor {
         String sequenceFragment = parts[1];
         long sequence;
         if (sequenceFragment.equals("*")) {
-            return new StreamId(timestamp, null);
+            return new StreamId(timestamp, null, true);
         } else {
             sequence = Long.parseLong(sequenceFragment);
         }
 
-        return new StreamId(timestamp, sequence);
+        return new StreamId(timestamp, sequence, true);
     }
 }
