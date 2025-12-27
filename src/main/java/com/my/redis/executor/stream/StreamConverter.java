@@ -11,6 +11,10 @@ import java.util.NavigableMap;
 public class StreamConverter {
 
     public StreamId convertStreamId(String startId, long sequence, boolean inclusive) {
+        if (startId.equals("$")) {
+            return new StreamId(null, null, true);
+        }
+
         if (startId.equals("-") || startId.equals("+")) {
             return null;
         }

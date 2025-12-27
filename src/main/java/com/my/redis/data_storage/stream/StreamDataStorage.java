@@ -57,9 +57,29 @@ public class StreamDataStorage {
         }
     }
 
+    //Todo add support for concurrent blocking reads
     public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Map<String, StreamId> keys, Duration duration) {
         Lock readLock = readWriteLock.writeLock();
         readLock.lock();
+
+        boolean needToGenerate = keys.values().stream()
+            .anyMatch(StreamId::needToBeGenerated);
+
+        if (needToGenerate) {
+            Map<String, StreamId> refactoredKeys = new LinkedHashMap<>();
+            keys.forEach((key, streamId) -> {
+                if (streamId.needToBeGenerated()) {
+                    Stream stream = keySpaceStorage.get(key, CLASS);
+                    if (streamId.needToBeGenerated()) {
+                        streamId = getLatestStreamId(stream);
+                    }
+                }
+
+                refactoredKeys.put(key, streamId);
+            });
+
+            keys = refactoredKeys;
+        }
 
         try {
             if (duration == null) {
@@ -145,6 +165,18 @@ public class StreamDataStorage {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private StreamId getLatestStreamId(Stream stream) {
+        if (stream == null || stream.isEmpty()) {
+            return new StreamId(0L, 0L, true);
+        }
+
+        var streamValue = stream.value;
+        StreamId streamId = streamValue.lastKey();
+
+        // Return a non-inclusive ID to start reading from the next entry
+        return new StreamId(streamId.timestampMillis(), streamId.sequence(), false);
     }
 
     private StreamId generateNextStreamId(Stream stream, Long timestampMillis, boolean isInclusive) {

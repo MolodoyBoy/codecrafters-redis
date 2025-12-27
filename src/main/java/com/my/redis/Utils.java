@@ -7,6 +7,9 @@ public class Utils {
 
     public static boolean isStreamId(String data) {
         try {
+            if (data.equals("$")) {
+                return true;
+            }
 
             String[] split = data.split("-");
             if (split.length == 1) {

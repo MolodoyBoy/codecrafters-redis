@@ -70,7 +70,7 @@ public class XREADCommandExecutor implements CommandExecutor {
         Iterator<StreamId> idIterator = streamIds.iterator();
 
         Map<String, StreamId> ids = new LinkedHashMap<>();
-        while (keyIterator.hasNext() && idIterator.hasNext()) {
+        while (keyIterator.hasNext() || idIterator.hasNext()) {
             String streamKey = keyIterator.next();
             StreamId streamId = idIterator.next();
             if (streamKey == null || streamId == null) {
