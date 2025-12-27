@@ -40,6 +40,14 @@ public class Utils {
         }
     }
 
+    public static Long parseLong(String data) {
+        try {
+            return Long.parseLong(data);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Expected integer value but got: " + data);
+        }
+    }
+
     public static String parseString(Data data) {
         if (data instanceof StringData stringData) {
             return stringData.getValue();

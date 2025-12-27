@@ -9,6 +9,7 @@ import com.my.redis.data_storage.stream.StreamId;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.base.CommandExecutor;
 
+import java.time.Duration;
 import java.util.*;
 
 import static com.my.redis.Command.*;
@@ -43,6 +44,16 @@ public class XREADCommandExecutor implements CommandExecutor {
             throw new IllegalArgumentException("Unsupported option: " + arg1);
         }
 
+        Duration duration = null;
+        if (option == BLOCK) {
+            String arg2 = args[index++].getStringValue();
+            long millis = Utils.parseLong(arg2);
+            duration = Duration.ofMillis(millis);
+
+            String arg3 = args[index++].getStringValue();
+            option = parseOption(arg3);
+        }
+
         List<String> streamKeys = new LinkedList<>();
         if (option == STREAMS) {
             while (index < args.length && !Utils.isStreamId(args[index].getStringValue())) {
@@ -69,7 +80,7 @@ public class XREADCommandExecutor implements CommandExecutor {
             ids.put(streamKey, streamId);
         }
 
-        var result = cache.getInRange(ids);
+        var result = cache.getInRange(ids, duration);
         return streamConverter.convertResult(result).encode();
     }
 }

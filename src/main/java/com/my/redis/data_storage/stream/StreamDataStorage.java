@@ -4,23 +4,28 @@ import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.key_space.Storage;
 import com.my.redis.exception.ValidationException;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.my.redis.data_storage.stream.StreamEntries.initStreamEntry;
+import static java.lang.Thread.currentThread;
 
 public class StreamDataStorage {
 
     private static final Class<Stream> CLASS = Stream.class;
 
+    private final Condition condition;
     private final ReadWriteLock readWriteLock;
     private final KeySpaceStorage keySpaceStorage;
 
     public StreamDataStorage(KeySpaceStorage keySpaceStorage) {
         this.keySpaceStorage = keySpaceStorage;
         this.readWriteLock = new ReentrantReadWriteLock();
+        this.condition = readWriteLock.writeLock().newCondition();
     }
 
     public NavigableMap<StreamId, StreamEntries> getInRange(String key,
@@ -52,23 +57,64 @@ public class StreamDataStorage {
         }
     }
 
-    public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Map<String, StreamId> keys) {
-        Lock readLock = readWriteLock.readLock();
+    public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Map<String, StreamId> keys, Duration duration) {
+        Lock readLock = readWriteLock.writeLock();
         readLock.lock();
 
-        var result = new LinkedHashMap<String, NavigableMap<StreamId, StreamEntries>>();
         try {
-            keys.forEach((key, streamId) -> {
-                Stream stream = keySpaceStorage.get(key, CLASS);
+            if (duration == null) {
+                var result = new LinkedHashMap<String, NavigableMap<StreamId, StreamEntries>>();
 
-                var streamValue = stream.value();
-                result.put(key, streamValue.tailMap(streamId, streamId.isInclusive()));
-            });
+                keys.forEach((key, streamId) -> {
+                    Stream stream = keySpaceStorage.get(key, CLASS);
+
+                    var streamValue = stream.value();
+                    result.put(key, streamValue.tailMap(streamId, streamId.isInclusive()));
+                });
+
+                return result;
+            } else {
+                long timeout = duration.toMillis();
+                long nanosRemaining = duration.toNanos();
+
+                Map<String, NavigableMap<StreamId, StreamEntries>> result;
+                while ((result = findAnyNotEmptyStream(keys)) == null) {
+                    if (timeout == 0) {
+                        condition.await();
+                    } else {
+                        nanosRemaining = condition.awaitNanos(nanosRemaining);
+                        if (nanosRemaining <= 0) {
+                            return null;
+                        }
+                    }
+                }
+
+                return result;
+            }
+        } catch (InterruptedException e) {
+            currentThread().interrupt();
+            return null;
         } finally {
             readLock.unlock();
         }
+    }
 
-        return result;
+    private Map<String, NavigableMap<StreamId, StreamEntries>> findAnyNotEmptyStream(Map<String, StreamId> keys) {
+        for (Map.Entry<String, StreamId> entry : keys.entrySet()) {
+            String key = entry.getKey();
+            StreamId streamId = entry.getValue();
+
+            Stream stream = keySpaceStorage.get(key, CLASS);
+            if (stream != null && !stream.isEmpty()) {
+                var streamValue = stream.value;
+                NavigableMap<StreamId, StreamEntries> result = streamValue.tailMap(streamId, streamId.isInclusive());
+                if (result != null && !result.isEmpty()) {
+                    return Map.of(key, result);
+                }
+            }
+        }
+
+        return null;
     }
 
     public StreamId addEntries(String key, StreamId streamId, List<StreamEntry> keyValuePairs) {
@@ -92,6 +138,8 @@ public class StreamDataStorage {
             }
 
             streamEntries.addAll(keyValuePairs);
+
+            condition.signalAll();
 
             return streamId;
         } finally {

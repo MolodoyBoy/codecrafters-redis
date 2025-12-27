@@ -8,7 +8,7 @@ import static java.util.stream.Collectors.toMap;
 
 public enum Option {
 
-    PX, STREAMS;
+    PX, STREAMS, BLOCK;
 
     private final String option;
 

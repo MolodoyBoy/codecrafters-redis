@@ -24,6 +24,10 @@ public class StreamConverter {
     }
 
     public ArrayData convertResult(Map<String, NavigableMap<StreamId, StreamEntries>> result) {
+        if (result == null || result.isEmpty()) {
+            return new ArrayData(null);
+        }
+
         ArrayData arrayData = new ArrayData(result.size());
         result.forEach((key, streamMap) -> {
             ArrayData keyValueArray = new ArrayData(2);
@@ -36,6 +40,10 @@ public class StreamConverter {
     }
 
     public ArrayData convertResult(NavigableMap<StreamId, StreamEntries> result) {
+        if (result == null || result.isEmpty()) {
+            return new ArrayData(null);
+        }
+
         ArrayData arrayData = new ArrayData(result.size());
         result.forEach((streamId, streamEntries) -> {
             ArrayData keyValueArray = new ArrayData(2);
