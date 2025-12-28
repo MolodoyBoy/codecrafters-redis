@@ -43,7 +43,7 @@ public class TransactionContext {
         throw new IllegalStateException("No transaction in progress!");
     }
 
-    private class DataHolder {
+    private static class DataHolder {
 
         private boolean inTransaction;
         private final Queue<Callable<String>> commandQueue;
