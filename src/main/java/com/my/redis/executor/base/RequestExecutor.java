@@ -9,6 +9,7 @@ import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.list.ListDataStorage;
 import com.my.redis.data_storage.map.MapDataStorage;
 import com.my.redis.data_storage.stream.StreamDataStorage;
+import com.my.redis.data_storage.transaction.TransactionContext;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.common.EchoCommandExecutor;
 import com.my.redis.executor.common.PingCommandExecutor;
@@ -20,13 +21,13 @@ import com.my.redis.executor.stream.XADDCommandExecutor;
 import com.my.redis.executor.stream.XRANGECommandExecutor;
 import com.my.redis.executor.stream.XREADCommandExecutor;
 import com.my.redis.executor.transaction.INCRCommandExecutor;
+import com.my.redis.executor.transaction.MULTICommandExecutor;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.*;
 import static com.my.redis.Command.*;
-import static java.util.function.Function.*;
 import static java.util.stream.Collectors.*;
 
 public class RequestExecutor {
@@ -36,7 +37,8 @@ public class RequestExecutor {
     public RequestExecutor(KeySpaceStorage keySpaceStorage,
                            MapDataStorage mapDataStorage,
                            ListDataStorage listDataStorage,
-                           StreamDataStorage streamDataStorage) {
+                           StreamDataStorage streamDataStorage,
+                           TransactionContext transactionContext) {
         this.commandExecutors = Stream.of(
             new PingCommandExecutor(),
             new EchoCommandExecutor(),
@@ -52,8 +54,9 @@ public class RequestExecutor {
             new XADDCommandExecutor(streamDataStorage),
             new XRANGECommandExecutor(streamDataStorage),
             new XREADCommandExecutor(streamDataStorage),
-            new INCRCommandExecutor(mapDataStorage)
-        ).collect(toMap(CommandExecutor::supportedCommand, identity()));
+            new INCRCommandExecutor(mapDataStorage),
+            new MULTICommandExecutor(transactionContext)
+        ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
     }
 
     public String execute(Data data) {

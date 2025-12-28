@@ -4,6 +4,7 @@ import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.list.ListDataStorage;
 import com.my.redis.data_storage.map.MapDataStorage;
 import com.my.redis.data_storage.stream.StreamDataStorage;
+import com.my.redis.data_storage.transaction.TransactionContext;
 import com.my.redis.executor.base.RequestExecutor;
 import com.my.redis.system.ExpiredEntriesCleaner;
 import com.my.redis.system.RedisServer;
@@ -23,8 +24,15 @@ public class Main {
         MapDataStorage dataStorage = new MapDataStorage(keySpaceStorage);
         ListDataStorage listDataStorage = new ListDataStorage(keySpaceStorage);
         StreamDataStorage streamDataStorage = new StreamDataStorage(keySpaceStorage);
+        TransactionContext transactionContext = new TransactionContext();
 
-        RequestExecutor requestExecutor = new RequestExecutor(keySpaceStorage, dataStorage, listDataStorage, streamDataStorage);
+        RequestExecutor requestExecutor = new RequestExecutor(
+            keySpaceStorage,
+            dataStorage,
+            listDataStorage,
+            streamDataStorage,
+            transactionContext
+        );
 
         try (ExecutorService executorService = newFixedThreadPool(workerThreads);
              ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {
