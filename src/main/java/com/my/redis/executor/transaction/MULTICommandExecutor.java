@@ -22,6 +22,11 @@ public class MULTICommandExecutor implements CommandExecutor {
     }
 
     @Override
+    public boolean manageTransaction() {
+        return true;
+    }
+
+    @Override
     public String execute(CommandArgs commandArgs) {
         transactionContext.beginTransaction();
         return new SimpleStringData("OK").encode();

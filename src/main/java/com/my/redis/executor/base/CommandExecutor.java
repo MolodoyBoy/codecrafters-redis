@@ -7,5 +7,9 @@ public interface CommandExecutor {
 
     Command supportedCommand();
 
+    default boolean manageTransaction() {
+        return false;
+    }
+
     String execute(CommandArgs commandArgs);
 }

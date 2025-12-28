@@ -2,6 +2,7 @@ package com.my.redis.data_storage.transaction;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 
 import static java.lang.ThreadLocal.*;
 
@@ -23,17 +24,26 @@ public class TransactionContext {
         return dataHolder.inTransaction;
     }
 
-    public void addCommandToQueue(Runnable runnable) {
+    public void addCommandToQueue(Callable<String> runnable) {
         DataHolder dataHolder = threadLocal.get();
         if (dataHolder != null) {
             dataHolder.commandQueue.add(runnable);
         }
     }
 
+    public Queue<Callable<String>> getQueuedCommands() {
+        DataHolder dataHolder = threadLocal.get();
+        if (dataHolder != null) {
+            return dataHolder.commandQueue;
+        }
+
+        return new LinkedList<>();
+    }
+
     private class DataHolder {
 
         private boolean inTransaction;
-        private final Queue<Runnable> commandQueue;
+        private final Queue<Callable<String>> commandQueue;
 
         public DataHolder() {
             this.inTransaction = false;
