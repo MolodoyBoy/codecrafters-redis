@@ -24,6 +24,21 @@ public class TransactionContext {
         return dataHolder.inTransaction;
     }
 
+    public boolean discardTransaction() {
+        DataHolder dataHolder = threadLocal.get();
+        if (dataHolder == null) {
+            return false;
+        }
+
+        boolean inTransaction = dataHolder.inTransaction;
+        if (!inTransaction) {
+            return false;
+        }
+
+        threadLocal.remove();
+        return true;
+    }
+
     public void addCommandToQueue(Callable<String> runnable) {
         DataHolder dataHolder = threadLocal.get();
         if (dataHolder != null) {

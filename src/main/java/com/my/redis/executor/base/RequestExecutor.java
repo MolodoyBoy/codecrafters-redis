@@ -20,6 +20,7 @@ import com.my.redis.executor.map.SetCommandExecutor;
 import com.my.redis.executor.stream.XADDCommandExecutor;
 import com.my.redis.executor.stream.XRANGECommandExecutor;
 import com.my.redis.executor.stream.XREADCommandExecutor;
+import com.my.redis.executor.transaction.DISCARDCommandExecutor;
 import com.my.redis.executor.transaction.EXECCommandExecutor;
 import com.my.redis.executor.transaction.INCRCommandExecutor;
 import com.my.redis.executor.transaction.MULTICommandExecutor;
@@ -57,7 +58,8 @@ public class RequestExecutor {
             new XREADCommandExecutor(streamDataStorage),
             new INCRCommandExecutor(mapDataStorage),
             new MULTICommandExecutor(transactionContext),
-            new EXECCommandExecutor(transactionContext)
+            new EXECCommandExecutor(transactionContext),
+            new DISCARDCommandExecutor(transactionContext)
         ).collect(toMap(CommandExecutor::supportedCommand, cm -> {
             if (cm.manageTransaction()) {
                 return cm;
