@@ -60,13 +60,7 @@ public class RequestExecutor {
             new MULTICommandExecutor(transactionContext),
             new EXECCommandExecutor(transactionContext),
             new DISCARDCommandExecutor(transactionContext)
-        ).collect(toMap(CommandExecutor::supportedCommand, cm -> {
-            if (cm.manageTransaction()) {
-                return cm;
-            } else {
-                return new TransactionalCommandExecutor(cm, transactionContext);
-            }
-        }));
+        ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
     }
 
     public String execute(Data data) {
