@@ -31,13 +31,16 @@ public class TransactionContext {
         }
     }
 
-    public Queue<Callable<String>> getQueuedCommands() {
+    public Queue<Callable<String>> endTransaction() {
         DataHolder dataHolder = threadLocal.get();
         if (dataHolder != null) {
-            return dataHolder.commandQueue;
+            Queue<Callable<String>> commandQueue = dataHolder.commandQueue;
+
+            threadLocal.remove();
+            return commandQueue;
         }
 
-        return new LinkedList<>();
+        throw new IllegalStateException("No transaction in progress!");
     }
 
     private class DataHolder {

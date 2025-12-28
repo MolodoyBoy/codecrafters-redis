@@ -36,7 +36,7 @@ public class EXECCommandExecutor implements CommandExecutor {
             return new SimpleErrorData("ERR EXEC without MULTI").encode();
         }
 
-        Queue<Callable<String>> commandQueue = transactionContext.getQueuedCommands();
+        Queue<Callable<String>> commandQueue = transactionContext.endTransaction();
 
         ArrayData resultArray = new ArrayData(commandQueue.size());
         while (!commandQueue.isEmpty()) {
