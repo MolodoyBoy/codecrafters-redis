@@ -30,27 +30,15 @@ public class SetCommandExecutor implements CommandExecutor {
     }
 
     @Override
-    public synchronized String execute(CommandArgs commandArgs) {
+    public String execute(CommandArgs commandArgs) {
         Data[] args = commandArgs.args();
 
         if (args == null || args.length < 2) {
             throw new IllegalArgumentException("SET command requires at least 2 arguments!");
         }
 
-        String key;
-        String value;
-
-        if (args[0] instanceof StringData keyData) {
-            key = keyData.getValue();
-        } else {
-            throw new IllegalArgumentException("SET key must be a string!");
-        }
-
-        if (args[1] instanceof StringData valueData) {
-            value = valueData.getValue();
-        } else {
-            throw new IllegalArgumentException("SET value must be a string!");
-        }
+        String key = args[0].getStringValue();
+        String value = args[1].getStringValue();
 
         Long expirationTime = getExpirationTime(args);
         cache.put(key, value, expirationTime);

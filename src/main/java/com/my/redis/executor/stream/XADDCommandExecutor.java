@@ -3,7 +3,7 @@ package com.my.redis.executor.stream;
 import com.my.redis.Command;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
-import com.my.redis.data.SimpleError;
+import com.my.redis.data.SimpleErrorData;
 import com.my.redis.data_storage.stream.StreamDataStorage;
 import com.my.redis.data_storage.stream.StreamId;
 import com.my.redis.data_storage.stream.StreamEntry;
@@ -55,7 +55,7 @@ public class XADDCommandExecutor implements CommandExecutor {
 
             return new BulkStringData(result.toString()).encode();
         } catch (ValidationException e) {
-            return new SimpleError(e.getMessage()).encode();
+            return new SimpleErrorData(e.getMessage()).encode();
         }
     }
 

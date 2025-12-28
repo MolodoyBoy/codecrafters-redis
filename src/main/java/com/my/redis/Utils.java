@@ -27,11 +27,28 @@ public class Utils {
         }
     }
 
-    public static int parseInt(StringData stringData) {
+    public static boolean isInteger(String data) {
         try {
-            return Integer.parseInt(stringData.getValue());
+            Integer.parseInt(data);
+            return true;
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Expected integer value but got: " + stringData.getValue());
+            return false;
+        }
+    }
+
+    public static int parseInt(Data stringData) {
+        try {
+            return Integer.parseInt(stringData.getStringValue());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Expected integer value but got: " + stringData.getStringValue());
+        }
+    }
+
+    public static int parseInt(String data) {
+        try {
+            return Integer.parseInt(data);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Expected integer value but got: " + data);
         }
     }
 

@@ -3,11 +3,11 @@ package com.my.redis.data;
 import static com.my.redis.Delimiter.*;
 import static com.my.redis.data.DataType.*;
 
-public class SimpleError implements Data {
+public class SimpleErrorData implements Data {
 
     private final String message;
 
-    public SimpleError(String message) {
+    public SimpleErrorData(String message) {
         this.message = message;
     }
 

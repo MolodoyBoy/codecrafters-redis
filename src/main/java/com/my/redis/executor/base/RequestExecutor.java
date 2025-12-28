@@ -19,6 +19,7 @@ import com.my.redis.executor.map.SetCommandExecutor;
 import com.my.redis.executor.stream.XADDCommandExecutor;
 import com.my.redis.executor.stream.XRANGECommandExecutor;
 import com.my.redis.executor.stream.XREADCommandExecutor;
+import com.my.redis.executor.transaction.INCRCommandExecutor;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -50,7 +51,8 @@ public class RequestExecutor {
             new TYPECommandExecutor(keySpaceStorage),
             new XADDCommandExecutor(streamDataStorage),
             new XRANGECommandExecutor(streamDataStorage),
-            new XREADCommandExecutor(streamDataStorage)
+            new XREADCommandExecutor(streamDataStorage),
+            new INCRCommandExecutor(mapDataStorage)
         ).collect(toMap(CommandExecutor::supportedCommand, identity()));
     }
 

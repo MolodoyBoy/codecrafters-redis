@@ -24,7 +24,7 @@ public class GetCommandExecutor implements CommandExecutor {
     }
 
     @Override
-    public synchronized String execute(CommandArgs commandArgs) {
+    public String execute(CommandArgs commandArgs) {
         Data[] args = commandArgs.args();
 
         if (args == null || args.length != 1) {

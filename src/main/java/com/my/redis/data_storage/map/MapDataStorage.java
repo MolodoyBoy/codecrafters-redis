@@ -1,5 +1,6 @@
 package com.my.redis.data_storage.map;
 
+import com.my.redis.Utils;
 import com.my.redis.data_storage.key_space.KeySpaceStorage;
 
 import java.util.PriorityQueue;
@@ -55,6 +56,33 @@ public class MapDataStorage {
         executeWithLock(readWriteLock.writeLock(), cleanupTask);
 
         return null;
+    }
+
+    public int increment(String key) {
+        String value = get(key);
+
+        Supplier<Integer> task = () -> {
+            if (value == null) {
+                int initialValue = 1;
+                Data newData = new Data(Integer.toString(initialValue), null);
+                keySpaceStorage.put(key, newData);
+                return initialValue;
+            }
+
+            if (!Utils.isInteger(value)) {
+                return -1;
+            }
+
+            Data data = keySpaceStorage.get(key, CLASS);
+            int newValue = Utils.parseInt(value) + 1;
+
+            Data newData = new Data(Integer.toString(newValue), data.expireAtMillis());
+            keySpaceStorage.put(key, newData);
+
+            return newValue;
+        };
+
+        return executeWithLock(readWriteLock.writeLock(), task);
     }
 
     public void put(String key, String value, Long expireAtMillis) {
