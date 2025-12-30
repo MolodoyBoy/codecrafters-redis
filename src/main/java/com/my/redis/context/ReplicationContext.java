@@ -21,6 +21,10 @@ public class ReplicationContext {
         return role;
     }
 
+    public String masterURL() {
+        return masterURL;
+    }
+
     public enum ROLE {
         MASTER("master"),
         SLAVE("slave");

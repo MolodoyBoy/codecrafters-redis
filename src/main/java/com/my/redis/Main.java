@@ -8,8 +8,9 @@ import com.my.redis.data_storage.stream.StreamDataStorage;
 import com.my.redis.context.TransactionContext;
 import com.my.redis.executor.base.RequestExecutor;
 import com.my.redis.parser.ArgumentParser;
+import com.my.redis.server.replica_handshake.ReplicationHandshake;
 import com.my.redis.system.ExpiredEntriesCleaner;
-import com.my.redis.system.RedisServer;
+import com.my.redis.server.RedisServer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -42,6 +43,8 @@ public class Main {
             replicationContext
         );
 
+        ReplicationHandshake replicationHandshake = new ReplicationHandshake(replicationContext);
+
         try (ExecutorService executorService = newFixedThreadPool(DEFAULT_WORKER_THREADS);
              ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {
 
@@ -49,6 +52,9 @@ public class Main {
             RedisServer redisServer = new RedisServer(port, executorService, requestExecutor);
 
             expiredEntriesCleaner.start();
+
+            executorService.submit(replicationHandshake);
+
             redisServer.start();
         }
     }
