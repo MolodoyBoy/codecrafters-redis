@@ -32,9 +32,4 @@ public class TransactionalCommandExecutor implements CommandExecutor {
 
         return new SimpleStringData("QUEUED").encode();
     }
-
-    @Override
-    public byte[] executeAdditional(CommandArgs commandArgs) {
-        return proxy.executeAdditional(commandArgs);
-    }
 }

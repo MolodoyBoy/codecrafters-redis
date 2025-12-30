@@ -1,7 +1,10 @@
 package com.my.redis.server;
 
+import com.my.redis.RedisResponse;
 import com.my.redis.RequestDataDecoder;
+import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.Data;
+import com.my.redis.data_storage.replication.ReplicationAppendLog;
 import com.my.redis.executor.base.RequestExecutor;
 
 import java.io.*;
@@ -11,19 +14,30 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
-public class RedisServer {
+import static com.my.redis.context.ReplicationContext.Role.*;
+
+public class RedisServer implements Runnable {
 
     private final int port;
     private final RequestExecutor requestExecutor;
     private final ExecutorService executorService;
+    private final ReplicationContext replicationContext;
+    private final ReplicationAppendLog replicationAppendLog;
 
-    public RedisServer(int port, ExecutorService executorService, RequestExecutor requestExecutor) {
+    public RedisServer(int port,
+                       ExecutorService executorService,
+                       RequestExecutor requestExecutor,
+                       ReplicationContext replicationContext,
+                       ReplicationAppendLog replicationAppendLog) {
         this.port = port;
         this.requestExecutor = requestExecutor;
         this.executorService = executorService;
+        this.replicationContext = replicationContext;
+        this.replicationAppendLog = replicationAppendLog;
     }
 
-    public void start() {
+    @Override
+    public void run() {
         try (ServerSocket serverSocket = new ServerSocket()) {
 
             serverSocket.setReuseAddress(true);
@@ -39,9 +53,7 @@ public class RedisServer {
                         System.out.println("IOException in client handler: " + e.getMessage());
                     } finally {
                         try {
-                            if (!clientSocket.isClosed()) {
-                                clientSocket.close();
-                            }
+                            clientSocket.close();
                         } catch (IOException e) {
                             System.out.println("IOException while closing client socket: " + e.getMessage());
                         }
@@ -66,12 +78,16 @@ public class RedisServer {
 
                     Data data = requestDataDecoder.encode();
                     RedisResponse result = requestExecutor.execute(data);
-                    out.write(result.data().getBytes(StandardCharsets.US_ASCII));
+
+                    out.write(result.outputData().getBytes(StandardCharsets.US_ASCII));
                     out.flush();
 
-                    if (result.additional() != null) {
-                        out.write(result.additional());
-                        out.flush();
+                    if (replicationContext.isPropagated()) {
+                        break;
+                    }
+
+                    if (replicationContext.role() == MASTER && result.inputData() != null) {
+                        replicationAppendLog.add(result.inputData());
                     }
 
                 } catch (EOFException e) {
@@ -81,6 +97,10 @@ public class RedisServer {
                     e.printStackTrace();
                     break;
                 }
+            }
+
+            if (replicationContext.isPropagated()) {
+                new ReplicationMasterClient(clientSocket, executorService, replicationContext, replicationAppendLog).run();
             }
         }
     }

@@ -14,8 +14,4 @@ public interface CommandExecutor {
     }
 
     String execute(CommandArgs commandArgs);
-
-    default byte[] executeAdditional(CommandArgs commandArgs) {
-        return null;
-    }
 }

@@ -21,7 +21,7 @@ public class INFOCommandExecutor implements CommandExecutor {
 
     @Override
     public String execute(CommandArgs commandArgs) {
-        ReplicationContext.ROLE role = replicationContext.role();
+        ReplicationContext.Role role = replicationContext.role();
         String message = String.format(
             "role:%s," +
             "master_replid:%s," +

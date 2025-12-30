@@ -42,7 +42,7 @@ public class RequestDataDecoder {
 
         DataType dataType = dataTypeFactory(dataTypeValue);
         if (dataType == null) {
-            throw new IllegalArgumentException("Invalid data type!");
+            throw new IllegalArgumentException("Invalid outputData type!");
         }
 
         return switch (dataType) {
@@ -50,7 +50,7 @@ public class RequestDataDecoder {
             case ARRAY -> encodeArray();
             case BULK_STRING -> encodeBulkString();
             case SIMPLE_STRING -> encodeSimpleString();
-            case INTEGER, ERROR -> throw new IllegalArgumentException("Invalid data type for encoding!");
+            case INTEGER, ERROR -> throw new IllegalArgumentException("Invalid outputData type for encoding!");
         };
     }
 

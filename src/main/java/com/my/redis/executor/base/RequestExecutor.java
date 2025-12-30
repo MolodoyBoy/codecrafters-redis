@@ -28,10 +28,8 @@ import com.my.redis.executor.transaction.DISCARDCommandExecutor;
 import com.my.redis.executor.transaction.EXECCommandExecutor;
 import com.my.redis.executor.transaction.INCRCommandExecutor;
 import com.my.redis.executor.transaction.MULTICommandExecutor;
-import com.my.redis.server.RedisResponse;
+import com.my.redis.RedisResponse;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -89,11 +87,14 @@ public class RequestExecutor {
         }
 
         CommandExecutor commandExecutor = commandExecutors.get(commandArgs.command());
-        String result = commandExecutor.execute(commandArgs);
+        String outputData = commandExecutor.execute(commandArgs);
 
-        byte[] additional = commandExecutor.executeAdditional(commandArgs);
+        String inputData = null;
+        if (commandArgs.command().writeCommand()) {
+            inputData = data.encode();
+        }
 
-        return new RedisResponse(result, additional);
+        return new RedisResponse(outputData, inputData);
     }
 
     private CommandArgs getArrayCommandArgs(Data data) {
@@ -118,7 +119,7 @@ public class RequestExecutor {
             return new CommandArgs(command, args);
         }
 
-        throw new IllegalArgumentException("Invalid data type for array execution!");
+        throw new IllegalArgumentException("Invalid outputData type for array execution!");
     }
 
     private CommandArgs getStringCommandArgs(Data data) {

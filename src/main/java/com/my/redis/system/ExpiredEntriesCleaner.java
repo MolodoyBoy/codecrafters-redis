@@ -6,24 +6,18 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static java.util.concurrent.TimeUnit.*;
 
-public class ExpiredEntriesCleaner {
+public class ExpiredEntriesCleaner implements Runnable {
 
     private final int maxToRemove;
     private final MapDataStorage mapDataStorage;
-    private final ScheduledExecutorService scheduledExecutorService;
 
-    public ExpiredEntriesCleaner(int maxToRemove, MapDataStorage mapDataStorage, ScheduledExecutorService scheduledExecutorService) {
+    public ExpiredEntriesCleaner(int maxToRemove, MapDataStorage mapDataStorage) {
         this.maxToRemove = maxToRemove;
         this.mapDataStorage = mapDataStorage;
-        this.scheduledExecutorService = scheduledExecutorService;
     }
 
-    public void start() {
-        scheduledExecutorService.scheduleWithFixedDelay(
-                () -> mapDataStorage.removeExpired(maxToRemove),
-                10,
-                20,
-                MINUTES
-        );
+    @Override
+    public void run() {
+        mapDataStorage.removeExpired(maxToRemove);
     }
 }

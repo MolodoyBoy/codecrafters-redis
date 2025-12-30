@@ -2,12 +2,12 @@ package com.my.redis.context;
 
 import java.net.InetSocketAddress;
 
-public class MasterConnection {
+public class MasterAddress {
 
     private final int port;
     private final String host;
 
-    public MasterConnection(String url) {
+    public MasterAddress(String url) {
         String[] split = url.split(" ");
 
         this.host = split[0];

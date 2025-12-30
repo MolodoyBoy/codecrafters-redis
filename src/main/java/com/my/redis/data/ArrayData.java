@@ -28,7 +28,7 @@ public class ArrayData implements Data {
 
     public void addData(Data value) {
         if (data == null) {
-            throw new IllegalStateException("Cannot add data to null array");
+            throw new IllegalStateException("Cannot add outputData to null array");
         }
 
         if (position == data.length) {

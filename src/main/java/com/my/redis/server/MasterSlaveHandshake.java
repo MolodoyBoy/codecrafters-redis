@@ -1,51 +1,40 @@
 package com.my.redis.server;
 
 import com.my.redis.RequestDataDecoder;
-import com.my.redis.context.MasterConnection;
 import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.ArrayData;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 
-import java.io.*;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 import static com.my.redis.Command.*;
 
-public final class ReplicationHandshakeClient implements Runnable {
+public class MasterSlaveHandshake {
 
+    private final int port;
+    private final BufferedWriter out;
+    private final RequestDataDecoder requestDataDecoder;
     private final ReplicationContext replicationContext;
 
-    public ReplicationHandshakeClient(ReplicationContext replicationContext) {
+    public MasterSlaveHandshake(int port,
+                                BufferedWriter out,
+                                RequestDataDecoder requestDataDecoder,
+                                ReplicationContext replicationContext) {
+        this.out = out;
+        this.port = port;
+        this.requestDataDecoder = requestDataDecoder;
         this.replicationContext = replicationContext;
     }
 
-    @Override
-    public void run() {
-        if (replicationContext.role() == ReplicationContext.ROLE.MASTER) {
-            return;
-        }
-
-        MasterConnection masterConnection = replicationContext.masterConnection();
-        try (Socket socket = new Socket()) {
-            socket.connect(masterConnection.getSocketAddress(), 5000);
-
-            try (BufferedWriter out = getBufferedWriter(socket);
-                BufferedInputStream in = getBufferedInputStream(socket)) {
-                RequestDataDecoder requestDataDecoder = new RequestDataDecoder(in);
-
-                firstStep(out, requestDataDecoder);
-                secondStep(out, requestDataDecoder);
-                thirdStep(out, requestDataDecoder);
-            }
-
-        } catch (IOException e) {
-            System.err.println("Exception while handling handshake: " + e.getMessage());
-        }
+    public void performHandshake() throws IOException {
+        firstStep();
+        secondStep();
+        thirdStep();
     }
 
-    private void firstStep(BufferedWriter out, RequestDataDecoder requestDataDecoder) throws IOException {
+    private void firstStep() throws IOException {
         ArrayData arrayData = new ArrayData(1);
         arrayData.addData(new BulkStringData(PING.command()));
 
@@ -60,11 +49,11 @@ public final class ReplicationHandshakeClient implements Runnable {
         }
     }
 
-    private void secondStep(BufferedWriter out, RequestDataDecoder requestDataDecoder) throws IOException {
+    private void secondStep() throws IOException {
         ArrayData arrayData1 = new ArrayData(3);
         arrayData1.addData(new BulkStringData(REPLCONF.command()));
         arrayData1.addData(new BulkStringData("listening-port"));
-        arrayData1.addData(new BulkStringData(Integer.toString(replicationContext.port())));
+        arrayData1.addData(new BulkStringData(Integer.toString(port)));
 
         out.write(arrayData1.encode());
         out.flush();
@@ -90,7 +79,7 @@ public final class ReplicationHandshakeClient implements Runnable {
         }
     }
 
-    private void thirdStep(BufferedWriter out, RequestDataDecoder requestDataDecoder) throws IOException {
+    private void thirdStep() throws IOException {
         ArrayData arrayData3 = new ArrayData(3);
         arrayData3.addData(new BulkStringData(PSYNC.command()));
         arrayData3.addData(new BulkStringData(replicationContext.getReplicationId()));
@@ -106,13 +95,4 @@ public final class ReplicationHandshakeClient implements Runnable {
             throw new IOException("Invalid PSYNC response from master: " + response3);
         }
     }
-
-    private BufferedWriter getBufferedWriter(Socket clientSocket) throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.US_ASCII));
-    }
-
-    private BufferedInputStream getBufferedInputStream(Socket clientSocket) throws IOException {
-        return new BufferedInputStream(clientSocket.getInputStream());
-    }
 }
-

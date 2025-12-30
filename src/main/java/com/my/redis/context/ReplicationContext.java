@@ -1,40 +1,36 @@
 package com.my.redis.context;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static com.my.redis.context.ReplicationContext.ROLE.*;
+import static com.my.redis.context.ReplicationContext.Role.*;
 
 public class ReplicationContext {
 
-    private final int port;
-    private final ROLE role;
-    private final MasterConnection masterConnection;
+    private final Role role;
+    private final MasterAddress masterAddress;
+    private final ThreadLocal<Boolean> propagated;
 
-    private String replicationId;
     private final AtomicInteger replicationOffset;
+    private final AtomicReference<String> replicationId;
 
-    public ReplicationContext(int port, String masterURL) {
-        this.port = port;
-
+    public ReplicationContext(String masterURL) {
         if (masterURL != null) {
             this.role = SLAVE;
-            this.replicationId = "?";
+            this.replicationId = new AtomicReference<>("?");
             this.replicationOffset = new AtomicInteger(-1);
-            this.masterConnection = new MasterConnection(masterURL);
-
+            this.masterAddress = new MasterAddress(masterURL);
+            this.propagated = null;
         } else {
             this.role = MASTER;
-            this.masterConnection = null;
+            this.masterAddress = null;
+            this.propagated = ThreadLocal.withInitial(() -> false);
             this.replicationOffset = new AtomicInteger(0);
-            this.replicationId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+            this.replicationId = new AtomicReference<>("8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb");
         }
     }
 
-    public int port() {
-        return port;
-    }
-
-    public ROLE role() {
+    public Role role() {
         return role;
     }
 
@@ -43,7 +39,7 @@ public class ReplicationContext {
     }
 
     public String getReplicationId() {
-        return replicationId;
+        return replicationId.get();
     }
 
     public void setReplicationOffset(int replicationOffset) {
@@ -51,20 +47,36 @@ public class ReplicationContext {
     }
 
     public void setReplicationId(String replicationId) {
-        this.replicationId = replicationId;
+        this.replicationId.set(replicationId);
     }
 
-    public MasterConnection masterConnection() {
-        return masterConnection;
+    public void propagate() {
+        if (role == SLAVE) {
+            throw new UnsupportedOperationException("Slave cannot propagate as master.");
+        }
+
+        propagated.set(true);
     }
 
-    public enum ROLE {
+    public boolean isPropagated() {
+        if (role == SLAVE) {
+            throw new UnsupportedOperationException("Slave cannot propagate as master.");
+        }
+
+        return propagated.get();
+    }
+
+    public MasterAddress masterConnection() {
+        return masterAddress;
+    }
+
+    public enum Role {
         MASTER("master"),
         SLAVE("slave");
 
         private final String value;
 
-        ROLE(String value) {
+        Role(String value) {
             this.value = value;
         }
 
