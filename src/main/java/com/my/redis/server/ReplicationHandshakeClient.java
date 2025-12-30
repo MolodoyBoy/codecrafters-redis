@@ -1,13 +1,13 @@
 package com.my.redis.server;
 
 import com.my.redis.RequestDataDecoder;
+import com.my.redis.context.MasterConnection;
 import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.ArrayData;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -27,13 +27,9 @@ public final class ReplicationHandshakeClient implements Runnable {
             return;
         }
 
-        String masterUrl = replicationContext.masterHost();
-        if (masterUrl == null || masterUrl.isBlank()) {
-            return;
-        }
-
+        MasterConnection masterConnection = replicationContext.masterConnection();
         try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress(replicationContext.masterHost(), replicationContext.masterPort()), 5000);
+            socket.connect(masterConnection.getSocketAddress(), 5000);
 
             try (BufferedWriter out = getBufferedWriter(socket);
                 BufferedInputStream in = getBufferedInputStream(socket)) {
@@ -41,6 +37,7 @@ public final class ReplicationHandshakeClient implements Runnable {
 
                 firstStep(out, requestDataDecoder);
                 secondStep(out, requestDataDecoder);
+                thirdStep(out, requestDataDecoder);
             }
 
         } catch (IOException e) {
@@ -90,6 +87,23 @@ public final class ReplicationHandshakeClient implements Runnable {
         String response2 = encode2.getStringValue();
         if (!response2.equals("OK")) {
             throw new IOException("Invalid REPLCONF response from master: " + response2);
+        }
+    }
+
+    private void thirdStep(BufferedWriter out, RequestDataDecoder requestDataDecoder) throws IOException {
+        ArrayData arrayData3 = new ArrayData(3);
+        arrayData3.addData(new BulkStringData(PSYNC.command()));
+        arrayData3.addData(new BulkStringData(replicationContext.getReplicationId()));
+        arrayData3.addData(new BulkStringData(Integer.toString(replicationContext.getReplicationOffset())));
+
+        out.write(arrayData3.encode());
+        out.flush();
+
+        Data encode3 = requestDataDecoder.encode();
+        String response3 = encode3.getStringValue();
+
+        if (!response3.startsWith("FULLRESYNC")) {
+            throw new IOException("Invalid PSYNC response from master: " + response3);
         }
     }
 
