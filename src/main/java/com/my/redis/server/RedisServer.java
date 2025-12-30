@@ -58,17 +58,22 @@ public class RedisServer {
         System.out.println("Client handled: " + clientSocket.getRemoteSocketAddress());
 
         try (BufferedInputStream in = getBufferedInputStream(clientSocket);
-             BufferedWriter out = getBufferedWriter(clientSocket)) {
+             BufferedOutputStream out = getBufferedWriter(clientSocket)) {
 
             while (!executorService.isShutdown()) {
                 try {
                     RequestDataDecoder requestDataDecoder = new RequestDataDecoder(in);
 
                     Data data = requestDataDecoder.encode();
-                    String resultMessage = requestExecutor.execute(data);
-
-                    out.write(resultMessage);
+                    RedisResponse result = requestExecutor.execute(data);
+                    out.write(result.data().getBytes(StandardCharsets.US_ASCII));
                     out.flush();
+
+                    if (result.additional() != null) {
+                        out.write(result.additional());
+                        out.flush();
+                    }
+
                 } catch (EOFException e) {
 
                 } catch (IOException | IllegalArgumentException  e) {
@@ -84,7 +89,7 @@ public class RedisServer {
         return new BufferedInputStream(clientSocket.getInputStream());
     }
 
-    private BufferedWriter getBufferedWriter(Socket clientSocket) throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.US_ASCII));
+    private BufferedOutputStream getBufferedWriter(Socket clientSocket) throws IOException {
+        return new BufferedOutputStream(clientSocket.getOutputStream());
     }
 }

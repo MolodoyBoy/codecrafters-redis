@@ -28,7 +28,10 @@ import com.my.redis.executor.transaction.DISCARDCommandExecutor;
 import com.my.redis.executor.transaction.EXECCommandExecutor;
 import com.my.redis.executor.transaction.INCRCommandExecutor;
 import com.my.redis.executor.transaction.MULTICommandExecutor;
+import com.my.redis.server.RedisResponse;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -71,7 +74,7 @@ public class RequestExecutor {
         ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
     }
 
-    public String execute(Data data) {
+    public RedisResponse execute(Data data) {
         DataType dataType = data.getType();
 
         CommandArgs commandArgs = switch (dataType) {
@@ -85,7 +88,12 @@ public class RequestExecutor {
             return null;
         }
 
-        return commandExecutors.get(commandArgs.command()).execute(commandArgs);
+        CommandExecutor commandExecutor = commandExecutors.get(commandArgs.command());
+        String result = commandExecutor.execute(commandArgs);
+
+        byte[] additional = commandExecutor.executeAdditional(commandArgs);
+
+        return new RedisResponse(result, additional);
     }
 
     private CommandArgs getArrayCommandArgs(Data data) {

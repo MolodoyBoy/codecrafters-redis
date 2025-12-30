@@ -25,8 +25,8 @@ public class EXECCommandExecutor implements CommandExecutor {
     }
 
     @Override
-    public boolean manageTransaction() {
-        return true;
+    public boolean needTransaction() {
+        return false;
     }
 
     @Override

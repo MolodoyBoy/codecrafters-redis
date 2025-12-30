@@ -15,6 +15,11 @@ public class REPLCONFCommandExecutor implements CommandExecutor {
     }
 
     @Override
+    public boolean needTransaction() {
+        return false;
+    }
+
+    @Override
     public String execute(CommandArgs commandArgs) {
         return new SimpleStringData("OK").encode();
     }

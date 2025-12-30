@@ -24,12 +24,17 @@ public class TransactionalCommandExecutor implements CommandExecutor {
 
     @Override
     public String execute(CommandArgs commandArgs) {
-        if (proxy.manageTransaction() || !transactionContext.inTransaction()) {
+        if (!proxy.needTransaction() || !transactionContext.inTransaction()) {
             return proxy.execute(commandArgs);
         }
 
         transactionContext.addCommandToQueue(() -> proxy.execute(commandArgs));
 
         return new SimpleStringData("QUEUED").encode();
+    }
+
+    @Override
+    public byte[] executeAdditional(CommandArgs commandArgs) {
+        return proxy.executeAdditional(commandArgs);
     }
 }
