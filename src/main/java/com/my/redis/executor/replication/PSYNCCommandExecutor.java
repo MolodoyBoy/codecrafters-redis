@@ -16,6 +16,6 @@ public class PSYNCCommandExecutor implements CommandExecutor {
 
     @Override
     public String execute(CommandArgs commandArgs) {
-        return new SimpleStringData("FULLRESYNC").encode();
+        return new SimpleStringData("OK").encode();
     }
 }
