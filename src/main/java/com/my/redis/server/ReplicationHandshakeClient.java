@@ -37,6 +37,7 @@ public final class ReplicationHandshakeClient implements Runnable {
 
                 firstStep(out, requestDataDecoder);
                 secondStep(out, requestDataDecoder);
+                thirdStep(out, requestDataDecoder);
             }
 
         } catch (IOException e) {
