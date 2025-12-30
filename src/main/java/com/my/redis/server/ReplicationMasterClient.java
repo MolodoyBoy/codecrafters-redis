@@ -1,6 +1,5 @@
 package com.my.redis.server;
 
-import com.my.redis.context.ReplicationContext;
 import com.my.redis.data_storage.replication.ReplicationAppendLog;
 
 import java.io.BufferedOutputStream;
@@ -14,16 +13,13 @@ public class ReplicationMasterClient implements Runnable {
 
     private final Socket socket;
     private final ExecutorService executorService;
-    private final ReplicationContext replicationContext;
     private final ReplicationAppendLog replicationAppendLog;
 
     public ReplicationMasterClient(Socket socket,
                                    ExecutorService executorService,
-                                   ReplicationContext replicationContext,
                                    ReplicationAppendLog replicationAppendLog) {
         this.socket = socket;
         this.executorService = executorService;
-        this.replicationContext = replicationContext;
         this.replicationAppendLog = replicationAppendLog;
     }
 
@@ -36,10 +32,15 @@ public class ReplicationMasterClient implements Runnable {
             int currentOffset = replicationAppendLog.size();
 
             while (!executorService.isShutdown()) {
-                String result = replicationAppendLog.get(currentOffset++);
 
-                out.write(result.getBytes(StandardCharsets.US_ASCII));
-                out.flush();
+                try {
+                    String result = replicationAppendLog.get(currentOffset++);
+
+                    out.write(result.getBytes(StandardCharsets.US_ASCII));
+                    out.flush();
+                } catch (IOException e) {
+                    System.err.println("IOException while sending replication data: " + e.getMessage());
+                }
             }
 
         } catch (IOException | InterruptedException e) {

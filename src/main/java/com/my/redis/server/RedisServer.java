@@ -94,7 +94,7 @@ public class RedisServer implements Runnable {
             }
 
             if (replicationContext.isPropagated()) {
-                new ReplicationMasterClient(clientSocket, executorService, replicationContext, replicationAppendLog).run();
+                new ReplicationMasterClient(clientSocket, executorService, replicationAppendLog).run();
             }
         }
     }

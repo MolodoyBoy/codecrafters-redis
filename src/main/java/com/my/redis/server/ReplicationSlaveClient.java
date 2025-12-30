@@ -3,18 +3,28 @@ package com.my.redis.server;
 import com.my.redis.RequestDataDecoder;
 import com.my.redis.context.MasterAddress;
 import com.my.redis.context.ReplicationContext;
+import com.my.redis.data.Data;
+import com.my.redis.executor.base.RequestExecutor;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
 
 public final class ReplicationSlaveClient implements Runnable {
 
     private final int port;
+    private final RequestExecutor requestExecutor;
+    private final ExecutorService executorService;
     private final ReplicationContext replicationContext;
 
-    public ReplicationSlaveClient(int port, ReplicationContext replicationContext) {
+    public ReplicationSlaveClient(int port,
+                                  RequestExecutor requestExecutor,
+                                  ExecutorService executorService,
+                                  ReplicationContext replicationContext) {
         this.port = port;
+        this.requestExecutor = requestExecutor;
+        this.executorService = executorService;
         this.replicationContext = replicationContext;
     }
 
@@ -34,6 +44,19 @@ public final class ReplicationSlaveClient implements Runnable {
 
                 MasterSlaveHandshake handshake = new MasterSlaveHandshake(port, out, requestDataDecoder, replicationContext);
                 handshake.performHandshake();
+
+                while (!executorService.isShutdown()) {
+                    try {
+                        Data data = requestDataDecoder.encode();
+                        requestExecutor.execute(data);
+                    } catch (EOFException e) {
+
+                    } catch (IOException | IllegalArgumentException  e) {
+                        System.err.println("Exception while handling client: " + e.getMessage());
+                        e.printStackTrace();
+                        break;
+                    }
+                }
             }
 
         } catch (IOException e) {

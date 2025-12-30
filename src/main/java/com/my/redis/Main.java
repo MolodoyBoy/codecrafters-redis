@@ -47,8 +47,6 @@ public class Main {
             replicationContext
         );
 
-        ReplicationSlaveClient replicationSlaveClient = new ReplicationSlaveClient(port, replicationContext);
-
         try (ExecutorService systemServerExecutor = newFixedThreadPool(2);
              ExecutorService redisServerExecutor = newFixedThreadPool(DEFAULT_WORKER_THREADS);
              ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {
@@ -62,15 +60,16 @@ public class Main {
                 replicationAppendLog
             );
 
-            scheduledExecutorService.scheduleWithFixedDelay(
-                expiredEntriesCleaner,
-                10,
-                20,
-                MINUTES
+            ReplicationSlaveClient replicationSlaveClient = new ReplicationSlaveClient(
+                port,
+                requestExecutor,
+                systemServerExecutor,
+                replicationContext
             );
 
-            systemServerExecutor.submit(replicationSlaveClient);
             systemServerExecutor.submit(redisServer);
+            systemServerExecutor.submit(replicationSlaveClient);
+            scheduledExecutorService.scheduleWithFixedDelay(expiredEntriesCleaner, 10, 20, MINUTES);
 
             Thread.currentThread().join();
         }
