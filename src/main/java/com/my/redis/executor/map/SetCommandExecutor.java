@@ -41,7 +41,7 @@ public class SetCommandExecutor implements CommandExecutor {
         String value = args[1].getStringValue();
 
         Long expirationTime = getExpirationTime(args);
-        cache.put(key, value, expirationTime);
+        cache.put(key, value, expirationTime, commandArgs.inputData());
 
         return new SimpleStringData("OK").encode();
     }

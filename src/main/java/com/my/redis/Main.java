@@ -29,10 +29,11 @@ public class Main {
         int port = argumentParser.parsePortArg(DEFAULT_PORT);
         String masterURL = argumentParser.parseReplicaOfArg();
 
+        ReplicationAppendLog replicationAppendLog = new ReplicationAppendLog();
         KeySpaceStorage keySpaceStorage = new KeySpaceStorage();
-        MapDataStorage dataStorage = new MapDataStorage(keySpaceStorage);
-        ListDataStorage listDataStorage = new ListDataStorage(keySpaceStorage);
-        StreamDataStorage streamDataStorage = new StreamDataStorage(keySpaceStorage);
+        MapDataStorage dataStorage = new MapDataStorage(keySpaceStorage, replicationAppendLog);
+        ListDataStorage listDataStorage = new ListDataStorage(keySpaceStorage, replicationAppendLog);
+        StreamDataStorage streamDataStorage = new StreamDataStorage(keySpaceStorage, replicationAppendLog);
 
         TransactionContext transactionContext = new TransactionContext();
         ReplicationContext replicationContext = new ReplicationContext(masterURL);
@@ -58,7 +59,7 @@ public class Main {
                 redisServerExecutor,
                 requestExecutor,
                 replicationContext,
-                new ReplicationAppendLog()
+                replicationAppendLog
             );
 
             scheduledExecutorService.scheduleWithFixedDelay(

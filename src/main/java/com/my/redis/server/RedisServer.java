@@ -14,8 +14,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
-import static com.my.redis.context.ReplicationContext.Role.*;
-
 public class RedisServer implements Runnable {
 
     private final int port;
@@ -84,10 +82,6 @@ public class RedisServer implements Runnable {
 
                     if (replicationContext.isPropagated()) {
                         break;
-                    }
-
-                    if (replicationContext.role() == MASTER && result.inputData() != null) {
-                        replicationAppendLog.add(result.inputData());
                     }
 
                 } catch (EOFException e) {

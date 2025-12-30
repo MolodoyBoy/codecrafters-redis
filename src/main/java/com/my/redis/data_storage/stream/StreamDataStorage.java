@@ -2,6 +2,7 @@ package com.my.redis.data_storage.stream;
 
 import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.key_space.Storage;
+import com.my.redis.data_storage.replication.ReplicationAppendLog;
 import com.my.redis.exception.ValidationException;
 
 import java.time.Duration;
@@ -21,9 +22,12 @@ public class StreamDataStorage {
     private final Condition condition;
     private final ReadWriteLock readWriteLock;
     private final KeySpaceStorage keySpaceStorage;
+    private final ReplicationAppendLog replicationAppendLog;
 
-    public StreamDataStorage(KeySpaceStorage keySpaceStorage) {
+    public StreamDataStorage(KeySpaceStorage keySpaceStorage,
+                             ReplicationAppendLog replicationAppendLog) {
         this.keySpaceStorage = keySpaceStorage;
+        this.replicationAppendLog = replicationAppendLog;
         this.readWriteLock = new ReentrantReadWriteLock();
         this.condition = readWriteLock.writeLock().newCondition();
     }
@@ -57,7 +61,7 @@ public class StreamDataStorage {
         }
     }
 
-    //Todo add support for concurrent blocking reads
+    //Todo add support for concurrent reads
     public Map<String, NavigableMap<StreamId, StreamEntries>> getInRange(Map<String, StreamId> keys, Duration duration) {
         Lock readLock = readWriteLock.writeLock();
         readLock.lock();
@@ -137,7 +141,7 @@ public class StreamDataStorage {
         return null;
     }
 
-    public StreamId addEntries(String key, StreamId streamId, List<StreamEntry> keyValuePairs) {
+    public StreamId addEntries(String key, StreamId streamId, List<StreamEntry> keyValuePairs, String query) {
         Lock writeLock = readWriteLock.writeLock();
         writeLock.lock();
 
@@ -163,6 +167,7 @@ public class StreamDataStorage {
 
             return streamId;
         } finally {
+            replicationAppendLog.add(query);
             writeLock.unlock();
         }
     }

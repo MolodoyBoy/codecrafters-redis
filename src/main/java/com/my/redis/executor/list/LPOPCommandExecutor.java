@@ -37,7 +37,7 @@ public class LPOPCommandExecutor implements CommandExecutor {
         String listKey = toStringData(args[0]).getValue();
 
         if (args.length == 1) {
-            List<String> removed = cache.remove(listKey, 1);
+            List<String> removed = cache.remove(listKey, 1, commandArgs.inputData());
             if (removed == null) {
                 return new BulkStringData(null).encode();
             }
@@ -47,7 +47,7 @@ public class LPOPCommandExecutor implements CommandExecutor {
 
         int count = parseInt(toStringData(args[1]));
 
-        List<String> removed = cache.remove(listKey, count);
+        List<String> removed = cache.remove(listKey, count, commandArgs.inputData());
         if (removed == null) {
             return new ArrayData(null).encode();
         }

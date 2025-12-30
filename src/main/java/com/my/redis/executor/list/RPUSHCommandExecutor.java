@@ -3,8 +3,7 @@ package com.my.redis.executor.list;
 import com.my.redis.Command;
 import com.my.redis.data_storage.list.ListDataStorage;
 
-import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static com.my.redis.Command.RPUSH;
 
@@ -22,7 +21,7 @@ public class RPUSHCommandExecutor extends BasePUSHCommandExecutor {
     }
 
     @Override
-    protected BiFunction<String, List<String>, Integer> getPushFunction() {
-        return cache::addToTail;
+    protected Function<Input, Integer> getPushFunction() {
+        return input -> cache.addToTail(input.key(), input.values(), input.query());
     }
 }

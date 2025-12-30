@@ -9,10 +9,11 @@ import com.my.redis.executor.base.CommandExecutor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public abstract class BasePUSHCommandExecutor implements CommandExecutor {
 
-    protected abstract BiFunction<String, List<String>, Integer> getPushFunction();
+    protected abstract Function<Input, Integer> getPushFunction();
 
     @Override
     public String execute(CommandArgs commandArgs) {
@@ -34,8 +35,10 @@ public abstract class BasePUSHCommandExecutor implements CommandExecutor {
             }
         }
 
-        Integer size = getPushFunction().apply(listKey, values);
+        Integer size = getPushFunction().apply(new Input(listKey, values, commandArgs.inputData()));
 
         return new IntegerData(size).encode();
     }
+
+    protected record Input(String key, List<String> values, String query) {}
 }

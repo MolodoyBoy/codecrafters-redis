@@ -26,10 +26,10 @@ public class ReplicationAppendLog {
         }
     }
 
-    public void add(String log) {
+    public void add(String query) {
         lock.lock();
         try {
-            this.log.add(log);
+            this.log.add(query);
             condition.signalAll();
         } finally {
             lock.unlock();

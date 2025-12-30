@@ -51,7 +51,7 @@ public class XADDCommandExecutor implements CommandExecutor {
                 keyPairs.add(new StreamEntry(key, value));
             }
 
-            StreamId result = cache.addEntries(streamKey, streamId, keyPairs);
+            StreamId result = cache.addEntries(streamKey, streamId, keyPairs, commandArgs.inputData());
 
             return new BulkStringData(result.toString()).encode();
         } catch (ValidationException e) {

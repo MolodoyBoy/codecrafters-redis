@@ -10,44 +10,19 @@ import static java.util.stream.Collectors.toMap;
 
 public enum Command {
 
-    PING(false),
-    ECHO(false),
-    SET(true, PX),
-    GET(false),
-    RPUSH(true),
-    LRANGE(false),
-    LPUSH(true),
-    LLEN(false),
-    LPOP(true),
-    BLPOP(true),
-    TYPE(false),
-    XADD(true),
-    XRANGE(false),
-    XREAD(false, BLOCK, STREAMS),
-    INCR(true),
-    MULTI(false),
-    EXEC(false),
-    DISCARD(false),
-    INFO(false),
-    REPLCONF(false),
-    PSYNC(false);
+    PING, ECHO, SET(PX), GET, RPUSH, LRANGE, LPUSH, LLEN, LPOP, BLPOP, TYPE, XADD, XRANGE,
+    XREAD(BLOCK, STREAMS), INCR, MULTI, EXEC, DISCARD, INFO, REPLCONF, PSYNC;
 
     private final String command;
     private final Set<Option> options;
-    private final boolean writeCommand;
 
-    Command(boolean writeCommand, Option... options) {
+    Command(Option... options) {
         this.command = this.name();
         this.options = Set.of(options);
-        this.writeCommand = writeCommand;
     }
 
     public String command() {
         return command;
-    }
-
-    public boolean writeCommand() {
-        return writeCommand;
     }
 
     public boolean supportOption(Option option) {

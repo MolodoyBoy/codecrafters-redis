@@ -5,6 +5,7 @@ import com.my.redis.data_storage.list.ListDataStorage;
 
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static com.my.redis.Command.*;
 
@@ -22,7 +23,7 @@ public class LPUSHCommandExecutor extends BasePUSHCommandExecutor {
     }
 
     @Override
-    protected BiFunction<String, List<String>, Integer> getPushFunction() {
-        return cache::addToHead;
+    protected Function<Input, Integer> getPushFunction() {
+        return input -> cache.addToHead(input.key(), input.values(), input.query());
     }
 }

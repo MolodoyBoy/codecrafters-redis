@@ -1,7 +1,11 @@
 package com.my.redis.data_storage.list;
 
+import com.my.redis.Command;
+import com.my.redis.data.ArrayData;
+import com.my.redis.data.BulkStringData;
 import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.key_space.Storage;
+import com.my.redis.data_storage.replication.ReplicationAppendLog;
 
 import java.time.Duration;
 import java.util.LinkedList;
@@ -21,9 +25,12 @@ public class ListDataStorage {
     private final Condition condition;
     private final ReadWriteLock readWriteLock;
     private final KeySpaceStorage keySpaceStorage;
+    private final ReplicationAppendLog replicationAppendLog;
 
-    public ListDataStorage(KeySpaceStorage keySpaceStorage) {
+    public ListDataStorage(KeySpaceStorage keySpaceStorage,
+                           ReplicationAppendLog replicationAppendLog) {
         this.keySpaceStorage = keySpaceStorage;
+        this.replicationAppendLog = replicationAppendLog;
         this.readWriteLock = new ReentrantReadWriteLock(true);
         this.condition = readWriteLock.writeLock().newCondition();
     }
@@ -39,7 +46,7 @@ public class ListDataStorage {
         }
     }
 
-    public List<String> remove(String listKey, int count) {
+    public List<String> remove(String listKey, int count, String query) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -62,11 +69,12 @@ public class ListDataStorage {
 
             return removed;
         } finally {
+            replicationAppendLog.add(query);
             readWriteLock.writeLock().unlock();
         }
     }
 
-    public int addToTail(String listKey, List<String> values) {
+    public int addToTail(String listKey, List<String> values,  String query) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -78,11 +86,12 @@ public class ListDataStorage {
 
             return list.size();
         } finally {
+            replicationAppendLog.add(query);
             readWriteLock.writeLock().unlock();
         }
     }
 
-    public int addToHead(String listKey, List<String> values) {
+    public int addToHead(String listKey, List<String> values, String query) {
         readWriteLock.writeLock().lock();
 
         try {
@@ -97,6 +106,7 @@ public class ListDataStorage {
 
             return list.size();
         } finally {
+            replicationAppendLog.add(query);
             readWriteLock.writeLock().unlock();
         }
     }
@@ -106,6 +116,9 @@ public class ListDataStorage {
         long nanosRemaining = duration.toNanos();
 
         readWriteLock.writeLock().lock();
+
+        ArrayData arrayData = new ArrayData(2);
+        arrayData.addData(new BulkStringData(Command.LPOP.command()));
 
         try {
             String listKey;
@@ -121,11 +134,15 @@ public class ListDataStorage {
                 }
             }
 
+            arrayData.addData(new BulkStringData(listKey));
+
             return entry(listKey, keySpaceStorage.get(listKey, CLASS).removeFirst());
         } catch (InterruptedException e) {
             currentThread().interrupt();
             return null;
         } finally {
+            //Replace with LPOP for non blocking replication.
+            replicationAppendLog.add(arrayData.encode());
             readWriteLock.writeLock().unlock();
         }
     }

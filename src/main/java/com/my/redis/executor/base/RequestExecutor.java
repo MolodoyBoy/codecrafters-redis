@@ -89,12 +89,7 @@ public class RequestExecutor {
         CommandExecutor commandExecutor = commandExecutors.get(commandArgs.command());
         String outputData = commandExecutor.execute(commandArgs);
 
-        String inputData = null;
-        if (commandArgs.command().writeCommand()) {
-            inputData = data.encode();
-        }
-
-        return new RedisResponse(outputData, inputData);
+        return new RedisResponse(outputData);
     }
 
     private CommandArgs getArrayCommandArgs(Data data) {
@@ -116,7 +111,7 @@ public class RequestExecutor {
                 args = copyOfRange(arrayDataData, 1, arrayDataData.length);
             }
 
-            return new CommandArgs(command, args);
+            return new CommandArgs(command, args, data.encode());
         }
 
         throw new IllegalArgumentException("Invalid outputData type for array execution!");
@@ -124,7 +119,7 @@ public class RequestExecutor {
 
     private CommandArgs getStringCommandArgs(Data data) {
         Command command = findCommand(data);
-        return new CommandArgs(command, null);
+        return new CommandArgs(command, null, null);
     }
 
     private Command findCommand(Data shouldBeCommand) {

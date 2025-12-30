@@ -2,6 +2,7 @@ package com.my.redis.data_storage.map;
 
 import com.my.redis.Utils;
 import com.my.redis.data_storage.key_space.KeySpaceStorage;
+import com.my.redis.data_storage.replication.ReplicationAppendLog;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -20,10 +21,13 @@ public class MapDataStorage {
     private final Queue<KeyValuePair> queue;
     private final ReadWriteLock readWriteLock;
     private final KeySpaceStorage keySpaceStorage;
+    private final ReplicationAppendLog replicationAppendLog;
 
-    public MapDataStorage(KeySpaceStorage keySpaceStorage) {
+    public MapDataStorage(KeySpaceStorage keySpaceStorage,
+                          ReplicationAppendLog replicationAppendLog) {
         this.queue = new PriorityQueue<>();
         this.keySpaceStorage = keySpaceStorage;
+        this.replicationAppendLog = replicationAppendLog;
         this.readWriteLock = new ReentrantReadWriteLock();
     }
 
@@ -58,10 +62,12 @@ public class MapDataStorage {
         return null;
     }
 
-    public int increment(String key) {
+    public int increment(String key, String query) {
         String value = get(key);
 
-        Supplier<Integer> task = () -> {
+        readWriteLock.writeLock().lock();
+
+        try {
             if (value == null) {
                 int initialValue = 1;
                 Data newData = new Data(Integer.toString(initialValue), null);
@@ -80,24 +86,23 @@ public class MapDataStorage {
             keySpaceStorage.put(key, newData);
 
             return newValue;
-        };
-
-        return executeWithLock(readWriteLock.writeLock(), task);
+        } finally {
+            replicationAppendLog.add(query);
+            readWriteLock.writeLock().unlock();
+        }
     }
 
-    public void put(String key, String value, Long expireAtMillis) {
-        Supplier<Void> task = () -> {
+    public void put(String key, String value, Long expireAtMillis, String query) {
+        try {
             Data valueData = new Data(value, expireAtMillis);
             if (expireAtMillis != null) {
                 queue.add(new KeyValuePair(key, valueData));
             }
 
             keySpaceStorage.put(key, valueData);
-
-            return null;
-        };
-
-        executeWithLock(readWriteLock.writeLock(), task);
+        } finally {
+            replicationAppendLog.add(query);
+        }
     }
 
     /**

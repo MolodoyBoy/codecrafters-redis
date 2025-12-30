@@ -1,7 +1,6 @@
 package com.my.redis.executor.transaction;
 
 import com.my.redis.Command;
-import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 import com.my.redis.data.IntegerData;
 import com.my.redis.data.SimpleErrorData;
@@ -33,7 +32,7 @@ public class INCRCommandExecutor implements CommandExecutor {
 
         String key = args[0].getStringValue();
 
-        int result = dataStorage.increment(key);
+        int result = dataStorage.increment(key, commandArgs.inputData());
         if (result == -1) {
             return new SimpleErrorData("ERR value is not an integer or out of range").encode();
         }
