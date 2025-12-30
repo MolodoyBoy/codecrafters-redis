@@ -8,7 +8,7 @@ import com.my.redis.data_storage.stream.StreamDataStorage;
 import com.my.redis.context.TransactionContext;
 import com.my.redis.executor.base.RequestExecutor;
 import com.my.redis.parser.ArgumentParser;
-import com.my.redis.server.replica_handshake.ReplicationHandshake;
+import com.my.redis.server.ReplicationHandshakeClient;
 import com.my.redis.system.ExpiredEntriesCleaner;
 import com.my.redis.server.RedisServer;
 
@@ -32,7 +32,7 @@ public class Main {
         ListDataStorage listDataStorage = new ListDataStorage(keySpaceStorage);
         StreamDataStorage streamDataStorage = new StreamDataStorage(keySpaceStorage);
         TransactionContext transactionContext = new TransactionContext();
-        ReplicationContext replicationContext = new ReplicationContext(masterURL);
+        ReplicationContext replicationContext = new ReplicationContext(port, masterURL);
 
         RequestExecutor requestExecutor = new RequestExecutor(
             keySpaceStorage,
@@ -43,7 +43,7 @@ public class Main {
             replicationContext
         );
 
-        ReplicationHandshake replicationHandshake = new ReplicationHandshake(replicationContext);
+        ReplicationHandshakeClient replicationHandshakeClient = new ReplicationHandshakeClient(replicationContext);
 
         try (ExecutorService executorService = newFixedThreadPool(DEFAULT_WORKER_THREADS);
              ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {
@@ -53,7 +53,7 @@ public class Main {
 
             expiredEntriesCleaner.start();
 
-            executorService.submit(replicationHandshake);
+            executorService.submit(replicationHandshakeClient);
 
             redisServer.start();
         }
