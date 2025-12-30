@@ -1,6 +1,7 @@
 package com.my.redis.executor.base;
 
 import com.my.redis.Command;
+import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.ArrayData;
 import com.my.redis.data.Data;
 import com.my.redis.data.DataType;
@@ -9,7 +10,7 @@ import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.list.ListDataStorage;
 import com.my.redis.data_storage.map.MapDataStorage;
 import com.my.redis.data_storage.stream.StreamDataStorage;
-import com.my.redis.data_storage.transaction.TransactionContext;
+import com.my.redis.context.TransactionContext;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.common.EchoCommandExecutor;
 import com.my.redis.executor.common.PingCommandExecutor;
@@ -41,7 +42,8 @@ public class RequestExecutor {
                            MapDataStorage mapDataStorage,
                            ListDataStorage listDataStorage,
                            StreamDataStorage streamDataStorage,
-                           TransactionContext transactionContext) {
+                           TransactionContext transactionContext,
+                           ReplicationContext replicationContext) {
         this.commandExecutors = Stream.of(
             new PingCommandExecutor(),
             new EchoCommandExecutor(),
@@ -61,7 +63,7 @@ public class RequestExecutor {
             new MULTICommandExecutor(transactionContext),
             new EXECCommandExecutor(transactionContext),
             new DISCARDCommandExecutor(transactionContext),
-            new INFOCommandExecutor()
+            new INFOCommandExecutor(replicationContext)
         ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
     }
 

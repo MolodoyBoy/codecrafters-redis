@@ -1,30 +1,30 @@
 package com.my.redis.parser;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 public class ArgumentParser {
 
-    public int parsePortArg(String[] args, int defaultPort) {
-        if (args == null || args.length == 0) {
+    private final Map<ARGUMENT, Object> arguments;
+
+    public ArgumentParser(String[] args) {
+        this.arguments = parseArgs(args);
+    }
+
+    public int parsePortArg(int defaultPort) {
+        Object rawValue = arguments.get(ARGUMENT.PORT);
+        if (rawValue == null) {
             return defaultPort;
         }
 
-        for (int i = 0; i < args.length; i++) {
-            String a = args[i];
-            if ("--port".equals(a)) {
-                if (i + 1 >= args.length) {
-                    throw new IllegalArgumentException("Missing value after --port");
-                }
-                return parsePortValue(args[i + 1]);
-            }
-
-            if (a != null && a.startsWith("--port=")) {
-                return parsePortValue(a.substring("--port=".length()));
-            }
+        if (rawValue instanceof String s) {
+            return parsePortValue(s);
         }
 
-        return defaultPort;
+        throw new IllegalStateException("Unexpected value type for PORT: " + rawValue.getClass().getName());
     }
 
-    private int parsePortValue(String raw) {
+    private static int parsePortValue(String raw) {
         try {
             int port = Integer.parseInt(raw);
             if (port < 1 || port > 65535) {
@@ -34,5 +34,60 @@ public class ArgumentParser {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid port: " + raw, e);
         }
+    }
+
+    public String parseReplicaOfArg() {
+        Object rawValue = arguments.get(ARGUMENT.REPLICAOF);
+        if (rawValue == null) {
+            return null;
+        }
+
+        if (rawValue instanceof String s) {
+            return s;
+        }
+
+        throw new IllegalStateException("Unexpected value type for REPLICAOF: " + rawValue.getClass().getName());
+    }
+
+    /**
+     * Algorithm:
+     * - Iterate through args
+     * - If current token is an ARGUMENT (checked via ARGUMENT.valueOf(token)), then
+     *   collect following tokens as options until the next token is an ARGUMENT.
+     * - For this stage, assume each ARGUMENT has only one option.
+     */
+    private static Map<ARGUMENT, Object> parseArgs(String[] args) {
+        if (args == null || args.length == 0) {
+            return Map.of();
+        }
+
+        EnumMap<ARGUMENT, Object> result = new EnumMap<>(ARGUMENT.class);
+
+        ARGUMENT currentArg = null;
+        for (int i = 0; i < args.length; i++) {
+            String token = args[i];
+            if (token == null || token.isBlank()) {
+                continue;
+            }
+
+            ARGUMENT maybeArg;
+            try {
+                maybeArg = ARGUMENT.fromValue(token);
+            } catch (IllegalArgumentException ignored) {
+                maybeArg = null;
+            }
+
+            if (maybeArg != null) {
+                currentArg = maybeArg;
+                continue;
+            }
+
+            result.put(currentArg, token);
+
+            // Since one option is expected, reset.
+            currentArg = null;
+        }
+
+        return result;
     }
 }

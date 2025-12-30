@@ -3,8 +3,9 @@ package com.my.redis;
 import com.my.redis.data_storage.key_space.KeySpaceStorage;
 import com.my.redis.data_storage.list.ListDataStorage;
 import com.my.redis.data_storage.map.MapDataStorage;
+import com.my.redis.context.ReplicationContext;
 import com.my.redis.data_storage.stream.StreamDataStorage;
-import com.my.redis.data_storage.transaction.TransactionContext;
+import com.my.redis.context.TransactionContext;
 import com.my.redis.executor.base.RequestExecutor;
 import com.my.redis.parser.ArgumentParser;
 import com.my.redis.system.ExpiredEntriesCleaner;
@@ -21,21 +22,24 @@ public class Main {
     private static final int DEFAULT_WORKER_THREADS = 10;
 
     public static void main(String[] args) {
-        ArgumentParser argumentParser = new ArgumentParser();
-        int port = argumentParser.parsePortArg(args, DEFAULT_PORT);
+        ArgumentParser argumentParser = new ArgumentParser(args);
+        int port = argumentParser.parsePortArg(DEFAULT_PORT);
+        String masterURL = argumentParser.parseReplicaOfArg();
 
         KeySpaceStorage keySpaceStorage = new KeySpaceStorage();
         MapDataStorage dataStorage = new MapDataStorage(keySpaceStorage);
         ListDataStorage listDataStorage = new ListDataStorage(keySpaceStorage);
         StreamDataStorage streamDataStorage = new StreamDataStorage(keySpaceStorage);
         TransactionContext transactionContext = new TransactionContext();
+        ReplicationContext replicationContext = new ReplicationContext(masterURL);
 
         RequestExecutor requestExecutor = new RequestExecutor(
             keySpaceStorage,
             dataStorage,
             listDataStorage,
             streamDataStorage,
-            transactionContext
+            transactionContext,
+            replicationContext
         );
 
         try (ExecutorService executorService = newFixedThreadPool(DEFAULT_WORKER_THREADS);
