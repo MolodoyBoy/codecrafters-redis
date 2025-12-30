@@ -67,7 +67,7 @@ public class RequestExecutor {
             new DISCARDCommandExecutor(transactionContext),
             new INFOCommandExecutor(replicationContext),
             new REPLCONFCommandExecutor(),
-            new PSYNCCommandExecutor()
+            new PSYNCCommandExecutor(replicationContext)
         ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
     }
 

@@ -102,7 +102,7 @@ public final class ReplicationHandshakeClient implements Runnable {
         Data encode3 = requestDataDecoder.encode();
         String response3 = encode3.getStringValue();
 
-        if (!response3.startsWith("OK")) {
+        if (!response3.startsWith("FULLRESYNC")) {
             throw new IOException("Invalid PSYNC response from master: " + response3);
         }
     }

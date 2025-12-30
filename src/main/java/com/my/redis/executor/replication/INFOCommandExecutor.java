@@ -27,8 +27,8 @@ public class INFOCommandExecutor implements CommandExecutor {
             "master_replid:%s," +
             "master_repl_offset:%s",
             role.getValue(),
-            "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb",
-            0
+            replicationContext.getReplicationId(),
+            replicationContext.getReplicationOffset()
         );
 
         return new BulkStringData(message).encode();

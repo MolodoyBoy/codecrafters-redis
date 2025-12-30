@@ -1,5 +1,7 @@
 package com.my.redis.context;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static com.my.redis.context.ReplicationContext.ROLE.*;
 
 public class ReplicationContext {
@@ -8,19 +10,23 @@ public class ReplicationContext {
     private final ROLE role;
     private final MasterConnection masterConnection;
 
-    private int replicationOffset = -1;
-    private String replicationId = "?";
+    private String replicationId;
+    private final AtomicInteger replicationOffset;
 
     public ReplicationContext(int port, String masterURL) {
         this.port = port;
 
         if (masterURL != null) {
             this.role = SLAVE;
+            this.replicationId = "?";
+            this.replicationOffset = new AtomicInteger(-1);
             this.masterConnection = new MasterConnection(masterURL);
 
         } else {
             this.role = MASTER;
             this.masterConnection = null;
+            this.replicationOffset = new AtomicInteger(0);
+            this.replicationId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
         }
     }
 
@@ -33,7 +39,7 @@ public class ReplicationContext {
     }
 
     public int getReplicationOffset() {
-        return replicationOffset;
+        return replicationOffset.get();
     }
 
     public String getReplicationId() {
@@ -41,7 +47,7 @@ public class ReplicationContext {
     }
 
     public void setReplicationOffset(int replicationOffset) {
-        this.replicationOffset = replicationOffset;
+        this.replicationOffset.set(replicationOffset);
     }
 
     public void setReplicationId(String replicationId) {
