@@ -19,6 +19,7 @@ import com.my.redis.executor.list.*;
 import com.my.redis.executor.map.GetCommandExecutor;
 import com.my.redis.executor.map.SetCommandExecutor;
 import com.my.redis.executor.replication.INFOCommandExecutor;
+import com.my.redis.executor.replication.PSYNCCommandExecutor;
 import com.my.redis.executor.stream.XADDCommandExecutor;
 import com.my.redis.executor.stream.XRANGECommandExecutor;
 import com.my.redis.executor.stream.XREADCommandExecutor;
@@ -63,7 +64,8 @@ public class RequestExecutor {
             new MULTICommandExecutor(transactionContext),
             new EXECCommandExecutor(transactionContext),
             new DISCARDCommandExecutor(transactionContext),
-            new INFOCommandExecutor(replicationContext)
+            new INFOCommandExecutor(replicationContext),
+            new PSYNCCommandExecutor()
         ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
     }
 
