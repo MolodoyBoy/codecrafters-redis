@@ -6,6 +6,7 @@ import com.my.redis.data_storage.map.MapDataStorage;
 import com.my.redis.data_storage.stream.StreamDataStorage;
 import com.my.redis.data_storage.transaction.TransactionContext;
 import com.my.redis.executor.base.RequestExecutor;
+import com.my.redis.parser.ArgumentParser;
 import com.my.redis.system.ExpiredEntriesCleaner;
 import com.my.redis.system.RedisServer;
 
@@ -16,9 +17,12 @@ import static java.util.concurrent.Executors.*;
 
 public class Main {
 
+    private static final int DEFAULT_PORT = 6379;
+    private static final int DEFAULT_WORKER_THREADS = 10;
+
     public static void main(String[] args) {
-        int port = 6379;
-        int workerThreads = 10;
+        ArgumentParser argumentParser = new ArgumentParser();
+        int port = argumentParser.parsePortArg(args, DEFAULT_PORT);
 
         KeySpaceStorage keySpaceStorage = new KeySpaceStorage();
         MapDataStorage dataStorage = new MapDataStorage(keySpaceStorage);
@@ -34,7 +38,7 @@ public class Main {
             transactionContext
         );
 
-        try (ExecutorService executorService = newFixedThreadPool(workerThreads);
+        try (ExecutorService executorService = newFixedThreadPool(DEFAULT_WORKER_THREADS);
              ScheduledExecutorService scheduledExecutorService = newSingleThreadScheduledExecutor()) {
 
             ExpiredEntriesCleaner expiredEntriesCleaner = new ExpiredEntriesCleaner(100, dataStorage, scheduledExecutorService);
