@@ -89,7 +89,7 @@ public class RequestExecutor {
         CommandExecutor commandExecutor = commandExecutors.get(commandArgs.command());
         String outputData = commandExecutor.execute(commandArgs);
 
-        return new RedisResponse(outputData);
+        return new RedisResponse(commandArgs.command(), outputData);
     }
 
     private CommandArgs getArrayCommandArgs(Data data) {

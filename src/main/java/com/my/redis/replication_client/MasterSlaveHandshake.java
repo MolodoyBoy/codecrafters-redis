@@ -6,20 +6,21 @@ import com.my.redis.data.ArrayData;
 import com.my.redis.data.BulkStringData;
 import com.my.redis.data.Data;
 
-import java.io.BufferedWriter;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 
 import static com.my.redis.Command.*;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 
 public class MasterSlaveHandshake {
 
     private final int port;
-    private final BufferedWriter out;
+    private final BufferedOutputStream out;
     private final RequestDataDecoder requestDataDecoder;
     private final ReplicationContext replicationContext;
 
     public MasterSlaveHandshake(int port,
-                                BufferedWriter out,
+                                BufferedOutputStream out,
                                 RequestDataDecoder requestDataDecoder,
                                 ReplicationContext replicationContext) {
         this.out = out;
@@ -38,7 +39,7 @@ public class MasterSlaveHandshake {
         ArrayData arrayData = new ArrayData(1);
         arrayData.addData(new BulkStringData(PING.command()));
 
-        out.write(arrayData.encode());
+        out.write(arrayData.encode().getBytes(US_ASCII));
         out.flush();
 
         Data encode = requestDataDecoder.encode();
@@ -55,7 +56,7 @@ public class MasterSlaveHandshake {
         arrayData1.addData(new BulkStringData("listening-port"));
         arrayData1.addData(new BulkStringData(Integer.toString(port)));
 
-        out.write(arrayData1.encode());
+        out.write(arrayData1.encode().getBytes(US_ASCII));
         out.flush();
 
         Data encode1 = requestDataDecoder.encode();
@@ -69,7 +70,7 @@ public class MasterSlaveHandshake {
         arrayData2.addData(new BulkStringData("capa"));
         arrayData2.addData(new BulkStringData("psync2"));
 
-        out.write(arrayData2.encode());
+        out.write(arrayData2.encode().getBytes(US_ASCII));
         out.flush();
 
         Data encode2 = requestDataDecoder.encode();
@@ -85,7 +86,7 @@ public class MasterSlaveHandshake {
         arrayData3.addData(new BulkStringData(replicationContext.getReplicationId()));
         arrayData3.addData(new BulkStringData(Integer.toString(replicationContext.getReplicationOffset())));
 
-        out.write(arrayData3.encode());
+        out.write(arrayData3.encode().getBytes(US_ASCII));
         out.flush();
 
         Data encode3 = requestDataDecoder.encode();

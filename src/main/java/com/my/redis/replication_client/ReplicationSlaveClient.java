@@ -1,5 +1,7 @@
 package com.my.redis.replication_client;
 
+import com.my.redis.Command;
+import com.my.redis.RedisResponse;
 import com.my.redis.decoder.RDBFileDecoder;
 import com.my.redis.decoder.RequestDataDecoder;
 import com.my.redis.context.MasterAddress;
@@ -12,6 +14,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
+import static com.my.redis.Command.*;
 import static com.my.redis.context.ReplicationContext.Role.*;
 
 public final class ReplicationSlaveClient implements Runnable {
@@ -41,7 +44,7 @@ public final class ReplicationSlaveClient implements Runnable {
         try (Socket socket = new Socket()) {
             socket.connect(masterAddress.getSocketAddress(), 5000);
 
-            try (BufferedWriter out = getBufferedWriter(socket);
+            try (BufferedOutputStream out = getBufferedWriter(socket);
                 BufferedInputStream in = getBufferedInputStream(socket)) {
                 RequestDataDecoder requestDataDecoder = new RequestDataDecoder(in);
 
@@ -58,7 +61,11 @@ public final class ReplicationSlaveClient implements Runnable {
                 while (!executorService.isShutdown()) {
                     try {
                         Data data = requestDataDecoder.encode();
-                        requestExecutor.execute(data);
+                        RedisResponse response = requestExecutor.execute(data);
+                        if (response.command() == REPLCONF) {
+                            out.write(response.outputData().getBytes(StandardCharsets.US_ASCII));
+                            out.flush();
+                        }
 
                     } catch (EOFException e) {
 
@@ -74,8 +81,8 @@ public final class ReplicationSlaveClient implements Runnable {
         }
     }
 
-    private BufferedWriter getBufferedWriter(Socket clientSocket) throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.US_ASCII));
+    private BufferedOutputStream getBufferedWriter(Socket clientSocket) throws IOException {
+        return new BufferedOutputStream(clientSocket.getOutputStream());
     }
 
     private BufferedInputStream getBufferedInputStream(Socket clientSocket) throws IOException {

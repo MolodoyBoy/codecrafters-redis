@@ -1,7 +1,7 @@
 package com.my.redis.executor.replication;
 
 import com.my.redis.Command;
-import com.my.redis.data.SimpleStringData;
+import com.my.redis.data.*;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.base.CommandExecutor;
 
@@ -21,6 +21,19 @@ public class REPLCONFCommandExecutor implements CommandExecutor {
 
     @Override
     public String execute(CommandArgs commandArgs) {
+        Data[] args = commandArgs.args();
+        Command command = commandArgs.command();
+
+        Data option = args[0];
+        if (option.getStringValue().equals("GETACK")) {
+            ArrayData arrayData = new ArrayData(3);
+            arrayData.addData(new BulkStringData(command.command()));
+            arrayData.addData(new BulkStringData("ACK"));
+            arrayData.addData(new BulkStringData("0"));
+
+            return arrayData.encode();
+        }
+
         return new SimpleStringData("OK").encode();
     }
 }
