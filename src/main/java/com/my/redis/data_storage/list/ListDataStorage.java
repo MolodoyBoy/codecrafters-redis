@@ -117,11 +117,9 @@ public class ListDataStorage {
 
         readWriteLock.writeLock().lock();
 
-        ArrayData arrayData = new ArrayData(2);
-        arrayData.addData(new BulkStringData(Command.LPOP.command()));
+        String listKey = null;
 
         try {
-            String listKey;
 
             while ((listKey = findAnyNotEmptyList(listKeys)) == null) {
                 if (timeout == 0) {
@@ -134,16 +132,28 @@ public class ListDataStorage {
                 }
             }
 
-            arrayData.addData(new BulkStringData(listKey));
-
             return entry(listKey, keySpaceStorage.get(listKey, CLASS).removeFirst());
         } catch (InterruptedException e) {
             currentThread().interrupt();
             return null;
         } finally {
-            //Replace with LPOP for non blocking replication.
-            replicationAppendLog.add(arrayData.encode());
+            replicateBlockingCommand(listKey);
             readWriteLock.writeLock().unlock();
+        }
+    }
+
+    /**
+        Replace with LPOP for non-blocking replication.
+        Handle a case only for non-null listKey.
+     */
+
+    private void replicateBlockingCommand(String listKey) {
+        if (listKey != null) {
+            ArrayData arrayData = new ArrayData(2);
+            arrayData.addData(new BulkStringData(Command.LPOP.command()));
+            arrayData.addData(new BulkStringData(listKey));
+
+            replicationAppendLog.add(arrayData.encode());
         }
     }
 
