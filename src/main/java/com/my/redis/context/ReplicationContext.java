@@ -12,13 +12,14 @@ public class ReplicationContext {
     private final AtomicBoolean hasReplicas;
     private final MasterAddress masterAddress;
     private final ThreadLocal<Boolean> propagated;
-
     private final AtomicInteger replicationOffset;
     private final AtomicReference<String> replicationId;
+    private final ThreadLocal<Boolean> silentDuringReplicationCommand;
 
     public ReplicationContext(String masterURL) {
         this.hasReplicas = new AtomicBoolean(false);
         this.propagated = ThreadLocal.withInitial(() -> false);
+        this.silentDuringReplicationCommand = ThreadLocal.withInitial(() -> null);
 
         if (masterURL != null) {
             this.role = SLAVE;
@@ -68,6 +69,15 @@ public class ReplicationContext {
 
     public boolean hasReplicas() {
         return hasReplicas.get();
+    }
+
+    public void silentDuringReplicationCommand(boolean isReplication) {
+        silentDuringReplicationCommand.set(isReplication);
+    }
+
+    public boolean silentDuringReplicationCommand() {
+        Boolean result = silentDuringReplicationCommand.get();
+        return result != null && result;
     }
 
     public MasterAddress masterConnection() {

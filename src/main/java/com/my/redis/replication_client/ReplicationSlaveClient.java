@@ -1,6 +1,5 @@
 package com.my.redis.replication_client;
 
-import com.my.redis.Command;
 import com.my.redis.RedisResponse;
 import com.my.redis.decoder.RDBFileDecoder;
 import com.my.redis.decoder.RequestDataDecoder;
@@ -14,7 +13,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
-import static com.my.redis.Command.*;
 import static com.my.redis.context.ReplicationContext.Role.*;
 
 public final class ReplicationSlaveClient implements Runnable {
@@ -58,13 +56,19 @@ public final class ReplicationSlaveClient implements Runnable {
 
                 System.out.println("RDB file received.");
 
+                replicationContext.silentDuringReplicationCommand(true);
+
                 while (!executorService.isShutdown()) {
                     try {
                         Data data = requestDataDecoder.encode();
                         RedisResponse response = requestExecutor.execute(data);
-                        if (response.command() == REPLCONF) {
+
+                        if (!replicationContext.silentDuringReplicationCommand()) {
                             out.write(response.outputData().getBytes(StandardCharsets.US_ASCII));
                             out.flush();
+
+                            // After processing each command, ensure silence during replication
+                            replicationContext.silentDuringReplicationCommand(true);
                         }
 
                     } catch (EOFException e) {

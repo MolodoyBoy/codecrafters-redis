@@ -39,6 +39,7 @@ import static java.util.stream.Collectors.*;
 
 public class RequestExecutor {
 
+    private final TransactionContext transactionContext;
     private final Map<Command, CommandExecutor> commandExecutors;
 
     public RequestExecutor(KeySpaceStorage keySpaceStorage,
@@ -47,6 +48,7 @@ public class RequestExecutor {
                            StreamDataStorage streamDataStorage,
                            TransactionContext transactionContext,
                            ReplicationContext replicationContext) {
+        this.transactionContext = transactionContext;
         this.commandExecutors = Stream.of(
             new PingCommandExecutor(),
             new EchoCommandExecutor(),
@@ -67,9 +69,13 @@ public class RequestExecutor {
             new EXECCommandExecutor(transactionContext),
             new DISCARDCommandExecutor(transactionContext),
             new INFOCommandExecutor(replicationContext),
-            new REPLCONFCommandExecutor(),
+            new REPLCONFCommandExecutor(replicationContext),
             new PSYNCCommandExecutor(replicationContext)
-        ).collect(toMap(CommandExecutor::supportedCommand, cm -> new TransactionalCommandExecutor(cm, transactionContext)));
+        ).collect(toMap(CommandExecutor::supportedCommand, this::proxy));
+    }
+
+    private CommandExecutor proxy(CommandExecutor commandExecutor) {
+        return new TransactionalCommandExecutor(commandExecutor, transactionContext);
     }
 
     public RedisResponse execute(Data data) {
@@ -89,7 +95,7 @@ public class RequestExecutor {
         CommandExecutor commandExecutor = commandExecutors.get(commandArgs.command());
         String outputData = commandExecutor.execute(commandArgs);
 
-        return new RedisResponse(commandArgs.command(), outputData);
+        return new RedisResponse(outputData);
     }
 
     private CommandArgs getArrayCommandArgs(Data data) {

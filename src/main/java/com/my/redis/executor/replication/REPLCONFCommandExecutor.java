@@ -1,6 +1,7 @@
 package com.my.redis.executor.replication;
 
 import com.my.redis.Command;
+import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.*;
 import com.my.redis.executor.args.CommandArgs;
 import com.my.redis.executor.base.CommandExecutor;
@@ -8,6 +9,12 @@ import com.my.redis.executor.base.CommandExecutor;
 import static com.my.redis.Command.REPLCONF;
 
 public class REPLCONFCommandExecutor implements CommandExecutor {
+
+    private final ReplicationContext replicationContext;
+
+    public REPLCONFCommandExecutor(ReplicationContext replicationContext) {
+        this.replicationContext = replicationContext;
+    }
 
     @Override
     public Command supportedCommand() {
@@ -26,6 +33,8 @@ public class REPLCONFCommandExecutor implements CommandExecutor {
 
         Data option = args[0];
         if (option.getStringValue().equals("GETACK")) {
+            replicationContext.silentDuringReplicationCommand(false);
+
             ArrayData arrayData = new ArrayData(3);
             arrayData.addData(new BulkStringData(command.command()));
             arrayData.addData(new BulkStringData("ACK"));
