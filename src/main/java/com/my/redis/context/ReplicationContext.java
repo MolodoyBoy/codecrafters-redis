@@ -46,10 +46,6 @@ public class ReplicationContext {
         return replicationId.get();
     }
 
-    public void setReplicationOffset(int replicationOffset) {
-        this.replicationOffset.set(replicationOffset);
-    }
-
     public void updateReplicationOffset(int delta) {
         this.replicationOffset.addAndGet(delta);
     }

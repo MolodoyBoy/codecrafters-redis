@@ -11,7 +11,7 @@ import static java.util.stream.Collectors.toMap;
 public enum Command {
 
     PING, ECHO, SET(PX), GET, RPUSH, LRANGE, LPUSH, LLEN, LPOP, BLPOP, TYPE, XADD, XRANGE,
-    XREAD(BLOCK, STREAMS), INCR, MULTI, EXEC, DISCARD, INFO, REPLCONF, PSYNC;
+    XREAD(BLOCK, STREAMS), INCR, MULTI, EXEC, DISCARD, INFO, REPLCONF, PSYNC, WAIT;
 
     private final String command;
     private final Set<Option> options;
