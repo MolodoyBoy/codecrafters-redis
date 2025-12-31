@@ -31,7 +31,7 @@ public class ReplicationAppendLog {
     }
 
     public void add(String query) {
-        if (replicationContext.replicaNumber() > 0) {
+        if (replicationContext.replicaNumber() <= 0) {
             return;
         }
 
