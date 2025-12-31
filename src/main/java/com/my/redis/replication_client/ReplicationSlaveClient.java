@@ -62,11 +62,8 @@ public final class ReplicationSlaveClient implements Runnable {
 
                     } catch (EOFException e) {
 
-                    } catch (IOException | IllegalArgumentException  e) {
-                        System.err.println("Exception while handling client: " + e.getMessage());
-                        e.printStackTrace();
                     } catch (Exception e) {
-                        System.err.println("Unexpected exception: " + e.getMessage());
+                        System.err.println("Exception while receiving replicated data: " + e.getMessage());
                         e.printStackTrace();
                     }
                 }

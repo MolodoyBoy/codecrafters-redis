@@ -52,7 +52,8 @@ public class RedisServer implements Runnable {
                     try {
                         handleClient(clientSocket);
                     } catch (Exception e) {
-                        System.out.println("IOException in client handler: " + e.getMessage());
+                        System.out.println("Exception in client handler: " + e.getMessage());
+                        e.printStackTrace();
                     } finally {
                         try {
                             clientSocket.close();
@@ -93,7 +94,6 @@ public class RedisServer implements Runnable {
                 } catch (IOException | IllegalArgumentException  e) {
                     System.err.println("Exception while handling client: " + e.getMessage());
                     e.printStackTrace();
-                    break;
                 }
             }
 

@@ -51,12 +51,12 @@ public class ReplicationMasterClient implements Runnable {
                     out.write(result.getBytes(US_ASCII));
                     out.flush();
                 } catch (IOException e) {
-                    System.err.println("IOException while sending replication data: " + e.getMessage());
+                    System.err.println("IOException while sending replicated data: " + e.getMessage());
                 }
             }
 
         } catch (IOException | InterruptedException e) {
-            System.err.println("Exception in replication master client: " + e.getMessage());
+            System.err.println("Exception while sending replicated data: " + e.getMessage());
         }
     }
 
