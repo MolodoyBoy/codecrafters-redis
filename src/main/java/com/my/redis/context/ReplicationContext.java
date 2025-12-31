@@ -50,6 +50,10 @@ public class ReplicationContext {
         this.replicationOffset.set(replicationOffset);
     }
 
+    public void updateReplicationOffset(int delta) {
+        this.replicationOffset.addAndGet(delta);
+    }
+
     public void setReplicationId(String replicationId) {
         this.replicationId.set(replicationId);
     }

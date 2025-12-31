@@ -38,7 +38,7 @@ public class REPLCONFCommandExecutor implements CommandExecutor {
             ArrayData arrayData = new ArrayData(3);
             arrayData.addData(new BulkStringData(command.command()));
             arrayData.addData(new BulkStringData("ACK"));
-            arrayData.addData(new BulkStringData("0"));
+            arrayData.addData(new BulkStringData(Integer.toString(replicationContext.getReplicationOffset())));
 
             return arrayData.encode();
         }

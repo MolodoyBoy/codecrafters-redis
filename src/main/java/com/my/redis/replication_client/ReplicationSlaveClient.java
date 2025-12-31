@@ -54,6 +54,8 @@ public final class ReplicationSlaveClient implements Runnable {
                 RDBFileDecoder rdbFileDecoder = new RDBFileDecoder(in);
                 byte[] masterRBDFileContent = rdbFileDecoder.encode();
 
+                replicationContext.setReplicationOffset(0);
+
                 System.out.println("RDB file received.");
 
                 replicationContext.silentDuringReplicationCommand(true);
@@ -71,6 +73,7 @@ public final class ReplicationSlaveClient implements Runnable {
                             replicationContext.silentDuringReplicationCommand(true);
                         }
 
+                        replicationContext.updateReplicationOffset(data.encode().getBytes(StandardCharsets.US_ASCII).length);
                     } catch (EOFException e) {
 
                     } catch (Exception e) {
