@@ -45,16 +45,21 @@ public final class ReplicationSlaveClient implements Runnable {
                 MasterSlaveHandshake handshake = new MasterSlaveHandshake(port, out, requestDataDecoder, replicationContext);
                 handshake.performHandshake();
 
+                System.out.println("Handshake with master completed.");
+
                 while (!executorService.isShutdown()) {
                     try {
                         Data data = requestDataDecoder.encode();
                         requestExecutor.execute(data);
+
                     } catch (EOFException e) {
 
                     } catch (IOException | IllegalArgumentException  e) {
                         System.err.println("Exception while handling client: " + e.getMessage());
                         e.printStackTrace();
-                        break;
+                    } catch (Exception e) {
+                        System.err.println("Unexpected exception: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
             }

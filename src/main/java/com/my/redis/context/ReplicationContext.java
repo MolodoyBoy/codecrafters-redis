@@ -1,5 +1,6 @@
 package com.my.redis.context;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -8,6 +9,7 @@ import static com.my.redis.context.ReplicationContext.Role.*;
 public class ReplicationContext {
 
     private final Role role;
+    private final AtomicBoolean hasReplicas;
     private final MasterAddress masterAddress;
     private final ThreadLocal<Boolean> propagated;
 
@@ -15,6 +17,8 @@ public class ReplicationContext {
     private final AtomicReference<String> replicationId;
 
     public ReplicationContext(String masterURL) {
+        this.hasReplicas = new AtomicBoolean(false);
+
         if (masterURL != null) {
             this.role = SLAVE;
             this.replicationId = new AtomicReference<>("?");
@@ -56,14 +60,15 @@ public class ReplicationContext {
         }
 
         propagated.set(true);
+        hasReplicas.set(true);
     }
 
     public boolean isPropagated() {
-        if (role == SLAVE) {
-            throw new UnsupportedOperationException("Slave cannot propagate as master.");
-        }
-
         return propagated.get();
+    }
+
+    public boolean hasReplicas() {
+        return hasReplicas.get();
     }
 
     public MasterAddress masterConnection() {

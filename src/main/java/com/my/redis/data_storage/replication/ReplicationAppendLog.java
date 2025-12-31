@@ -1,5 +1,7 @@
 package com.my.redis.data_storage.replication;
 
+import com.my.redis.context.ReplicationContext;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
@@ -10,11 +12,13 @@ public class ReplicationAppendLog {
     private final List<String> log;
     private final ReentrantLock lock;
     private final Condition condition;
+    private final ReplicationContext replicationContext;
 
-    public ReplicationAppendLog() {
+    public ReplicationAppendLog(ReplicationContext replicationContext) {
         this.log = new ArrayList<>();
         this.lock = new ReentrantLock();
         this.condition = lock.newCondition();
+        this.replicationContext = replicationContext;
     }
 
     public int size() {
@@ -27,6 +31,10 @@ public class ReplicationAppendLog {
     }
 
     public void add(String query) {
+        if (!replicationContext.hasReplicas()) {
+            return;
+        }
+
         lock.lock();
         try {
             this.log.add(query);

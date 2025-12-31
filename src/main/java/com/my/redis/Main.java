@@ -29,14 +29,15 @@ public class Main {
         int port = argumentParser.parsePortArg(DEFAULT_PORT);
         String masterURL = argumentParser.parseReplicaOfArg();
 
-        ReplicationAppendLog replicationAppendLog = new ReplicationAppendLog();
+        ReplicationContext replicationContext = new ReplicationContext(masterURL);
+        ReplicationAppendLog replicationAppendLog = new ReplicationAppendLog(replicationContext);
+
         KeySpaceStorage keySpaceStorage = new KeySpaceStorage();
         MapDataStorage dataStorage = new MapDataStorage(keySpaceStorage, replicationAppendLog);
         ListDataStorage listDataStorage = new ListDataStorage(keySpaceStorage, replicationAppendLog);
         StreamDataStorage streamDataStorage = new StreamDataStorage(keySpaceStorage, replicationAppendLog);
 
         TransactionContext transactionContext = new TransactionContext();
-        ReplicationContext replicationContext = new ReplicationContext(masterURL);
 
         RequestExecutor requestExecutor = new RequestExecutor(
             keySpaceStorage,

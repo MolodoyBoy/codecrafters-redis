@@ -6,14 +6,14 @@ import java.util.Map;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
-public enum ARGUMENT {
+public enum Argument {
 
     PORT("--port"),
     REPLICAOF("--replicaof");
 
     private final String value;
 
-    ARGUMENT(String value) {
+    Argument(String value) {
         this.value = value;
     }
 
@@ -21,10 +21,10 @@ public enum ARGUMENT {
         return value;
     }
 
-    private static final Map<String, ARGUMENT> VALUE_MAP = Arrays.stream(ARGUMENT.values())
-        .collect(toMap(ARGUMENT::value, identity()));
+    private static final Map<String, Argument> VALUE_MAP = Arrays.stream(Argument.values())
+        .collect(toMap(Argument::value, identity()));
 
-    public static ARGUMENT fromValue(String value) {
+    public static Argument fromValue(String value) {
         return VALUE_MAP.get(value);
     }
 }

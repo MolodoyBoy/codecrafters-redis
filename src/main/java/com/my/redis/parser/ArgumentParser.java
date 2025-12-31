@@ -5,14 +5,14 @@ import java.util.Map;
 
 public class ArgumentParser {
 
-    private final Map<ARGUMENT, Object> arguments;
+    private final Map<Argument, Object> arguments;
 
     public ArgumentParser(String[] args) {
         this.arguments = parseArgs(args);
     }
 
     public int parsePortArg(int defaultPort) {
-        Object rawValue = arguments.get(ARGUMENT.PORT);
+        Object rawValue = arguments.get(Argument.PORT);
         if (rawValue == null) {
             return defaultPort;
         }
@@ -37,7 +37,7 @@ public class ArgumentParser {
     }
 
     public String parseReplicaOfArg() {
-        Object rawValue = arguments.get(ARGUMENT.REPLICAOF);
+        Object rawValue = arguments.get(Argument.REPLICAOF);
         if (rawValue == null) {
             return null;
         }
@@ -56,23 +56,23 @@ public class ArgumentParser {
      *   collect following tokens as options until the next token is an ARGUMENT.
      * - For this stage, assume each ARGUMENT has only one option.
      */
-    private static Map<ARGUMENT, Object> parseArgs(String[] args) {
+    private static Map<Argument, Object> parseArgs(String[] args) {
         if (args == null || args.length == 0) {
             return Map.of();
         }
 
-        EnumMap<ARGUMENT, Object> result = new EnumMap<>(ARGUMENT.class);
+        EnumMap<Argument, Object> result = new EnumMap<>(Argument.class);
 
-        ARGUMENT currentArg = null;
+        Argument currentArg = null;
         for (int i = 0; i < args.length; i++) {
             String token = args[i];
             if (token == null || token.isBlank()) {
                 continue;
             }
 
-            ARGUMENT maybeArg;
+            Argument maybeArg;
             try {
-                maybeArg = ARGUMENT.fromValue(token);
+                maybeArg = Argument.fromValue(token);
             } catch (IllegalArgumentException ignored) {
                 maybeArg = null;
             }

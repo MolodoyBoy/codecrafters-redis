@@ -38,6 +38,8 @@ public class RedisServer implements Runnable {
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket()) {
 
+            System.out.println("Redis server started on port " + port);
+
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(port));
 
@@ -94,7 +96,7 @@ public class RedisServer implements Runnable {
             }
 
             if (replicationContext.isPropagated()) {
-                new ReplicationMasterClient(clientSocket, executorService, replicationAppendLog).run();
+                new ReplicationMasterClient(clientSocket, executorService, replicationContext, replicationAppendLog).run();
             }
         }
     }
