@@ -72,7 +72,7 @@ public class RequestExecutor {
             new INFOCommandExecutor(replicationContext),
             new REPLCONFCommandExecutor(replicationContext),
             new PSYNCCommandExecutor(replicationContext),
-            new WAITCommandExecutor()
+            new WAITCommandExecutor(replicationContext)
         ).collect(toMap(CommandExecutor::supportedCommand, this::proxy));
     }
 

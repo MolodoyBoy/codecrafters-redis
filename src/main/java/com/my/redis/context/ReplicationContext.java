@@ -1,6 +1,5 @@
 package com.my.redis.context;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -9,7 +8,7 @@ import static com.my.redis.context.ReplicationContext.Role.*;
 public class ReplicationContext {
 
     private final Role role;
-    private final AtomicBoolean hasReplicas;
+    private final AtomicInteger replicaNumber;
     private final MasterAddress masterAddress;
     private final ThreadLocal<Boolean> propagated;
     private final AtomicInteger replicationOffset;
@@ -17,7 +16,7 @@ public class ReplicationContext {
     private final ThreadLocal<Boolean> silentDuringReplicationCommand;
 
     public ReplicationContext(String masterURL) {
-        this.hasReplicas = new AtomicBoolean(false);
+        this.replicaNumber = new AtomicInteger(0);
         this.propagated = ThreadLocal.withInitial(() -> false);
         this.silentDuringReplicationCommand = ThreadLocal.withInitial(() -> null);
 
@@ -60,15 +59,19 @@ public class ReplicationContext {
         }
 
         propagated.set(true);
-        hasReplicas.set(true);
+        replicaNumber.addAndGet(1);
     }
 
     public boolean isPropagated() {
         return propagated.get();
     }
 
-    public boolean hasReplicas() {
-        return hasReplicas.get();
+    public int replicaNumber() {
+        if (role == SLAVE) {
+            return -1;
+        }
+
+        return replicaNumber.get();
     }
 
     public void silentDuringReplicationCommand(boolean isReplication) {
