@@ -18,17 +18,16 @@ public class ReplicationContext {
 
     public ReplicationContext(String masterURL) {
         this.hasReplicas = new AtomicBoolean(false);
+        this.propagated = ThreadLocal.withInitial(() -> false);
 
         if (masterURL != null) {
             this.role = SLAVE;
             this.replicationId = new AtomicReference<>("?");
             this.replicationOffset = new AtomicInteger(-1);
             this.masterAddress = new MasterAddress(masterURL);
-            this.propagated = null;
         } else {
             this.role = MASTER;
             this.masterAddress = null;
-            this.propagated = ThreadLocal.withInitial(() -> false);
             this.replicationOffset = new AtomicInteger(0);
             this.replicationId = new AtomicReference<>("8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb");
         }

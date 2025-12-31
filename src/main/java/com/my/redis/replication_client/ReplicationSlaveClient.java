@@ -1,6 +1,7 @@
-package com.my.redis.server;
+package com.my.redis.replication_client;
 
-import com.my.redis.RequestDataDecoder;
+import com.my.redis.decoder.RDBFileDecoder;
+import com.my.redis.decoder.RequestDataDecoder;
 import com.my.redis.context.MasterAddress;
 import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.Data;
@@ -10,6 +11,8 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
+
+import static com.my.redis.context.ReplicationContext.Role.*;
 
 public final class ReplicationSlaveClient implements Runnable {
 
@@ -30,7 +33,7 @@ public final class ReplicationSlaveClient implements Runnable {
 
     @Override
     public void run() {
-        if (replicationContext.role() == ReplicationContext.Role.MASTER) {
+        if (replicationContext.role() != SLAVE) {
             return;
         }
 
@@ -46,6 +49,11 @@ public final class ReplicationSlaveClient implements Runnable {
                 handshake.performHandshake();
 
                 System.out.println("Handshake with master completed.");
+
+                RDBFileDecoder rdbFileDecoder = new RDBFileDecoder(in);
+                byte[] masterRBDFileContent = rdbFileDecoder.encode();
+
+                System.out.println("RDB file received.");
 
                 while (!executorService.isShutdown()) {
                     try {

@@ -1,4 +1,4 @@
-package com.my.redis.server;
+package com.my.redis.replication_client;
 
 import com.my.redis.context.ReplicationContext;
 import com.my.redis.data_storage.replication.ReplicationAppendLog;
@@ -6,9 +6,13 @@ import com.my.redis.data_storage.replication.ReplicationAppendLog;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.concurrent.ExecutorService;
+
+import static com.my.redis.Delimiter.CRLF;
+import static com.my.redis.context.ReplicationContext.Role.*;
+import static com.my.redis.data.DataType.*;
+import static java.nio.charset.StandardCharsets.*;
 
 public class ReplicationMasterClient implements Runnable {
 
@@ -29,13 +33,13 @@ public class ReplicationMasterClient implements Runnable {
 
     @Override
     public void run() {
-        if (replicationContext.role() == ReplicationContext.Role.SLAVE) {
+        if (replicationContext.role() != MASTER) {
             return;
         }
 
         try (BufferedOutputStream out = getBufferedWriter(socket)) {
 
-            //shareRDBConfig(out);
+            shareRDBConfig(out);
 
             int currentOffset = replicationAppendLog.size();
 
@@ -44,7 +48,7 @@ public class ReplicationMasterClient implements Runnable {
                 try {
                     String result = replicationAppendLog.get(currentOffset++);
 
-                    out.write(result.getBytes(StandardCharsets.US_ASCII));
+                    out.write(result.getBytes(US_ASCII));
                     out.flush();
                 } catch (IOException e) {
                     System.err.println("IOException while sending replication data: " + e.getMessage());
@@ -60,7 +64,8 @@ public class ReplicationMasterClient implements Runnable {
         String rdbB64 = "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
         byte[] rdbBytes = Base64.getDecoder().decode(rdbB64);
 
-        byte[] header = ("$" + rdbBytes.length + "\r\n").getBytes(StandardCharsets.US_ASCII);
+        String dataType = Character.toString(BULK_STRING.getValue());
+        byte[] header = (dataType + rdbBytes.length + CRLF).getBytes(US_ASCII);
 
         byte[] payload = new byte[header.length + rdbBytes.length];
         System.arraycopy(header, 0, payload, 0, header.length);

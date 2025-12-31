@@ -9,7 +9,7 @@ import com.my.redis.data_storage.stream.StreamDataStorage;
 import com.my.redis.context.TransactionContext;
 import com.my.redis.executor.base.RequestExecutor;
 import com.my.redis.parser.ArgumentParser;
-import com.my.redis.server.ReplicationSlaveClient;
+import com.my.redis.replication_client.ReplicationSlaveClient;
 import com.my.redis.system.ExpiredEntriesCleaner;
 import com.my.redis.server.RedisServer;
 

@@ -1,18 +1,20 @@
 package com.my.redis.server;
 
 import com.my.redis.RedisResponse;
-import com.my.redis.RequestDataDecoder;
+import com.my.redis.decoder.RequestDataDecoder;
 import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.Data;
 import com.my.redis.data_storage.replication.ReplicationAppendLog;
 import com.my.redis.executor.base.RequestExecutor;
+import com.my.redis.replication_client.ReplicationMasterClient;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
+
+import static java.nio.charset.StandardCharsets.*;
 
 public class RedisServer implements Runnable {
 
@@ -38,10 +40,10 @@ public class RedisServer implements Runnable {
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket()) {
 
-            System.out.println("Redis server started on port " + port);
-
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(port));
+
+            System.out.println("Redis server started on port " + port);
 
             while (!executorService.isShutdown()) {
                 Socket clientSocket = serverSocket.accept();
@@ -79,7 +81,7 @@ public class RedisServer implements Runnable {
                     Data data = requestDataDecoder.encode();
                     RedisResponse result = requestExecutor.execute(data);
 
-                    out.write(result.outputData().getBytes(StandardCharsets.US_ASCII));
+                    out.write(result.outputData().getBytes(US_ASCII));
                     out.flush();
 
                     if (replicationContext.isPropagated()) {

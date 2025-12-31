@@ -1,6 +1,6 @@
-package com.my.redis.server;
+package com.my.redis.replication_client;
 
-import com.my.redis.RequestDataDecoder;
+import com.my.redis.decoder.RequestDataDecoder;
 import com.my.redis.context.ReplicationContext;
 import com.my.redis.data.ArrayData;
 import com.my.redis.data.BulkStringData;
